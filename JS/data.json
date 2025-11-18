@@ -1,8 +1,17 @@
-{
-  "name": "abc",
-  "age": 78,
-  "isMarried": true,
-  "skills": [],
-  "address": {},
-  "key1": null
-}
+[
+  {
+    "name": "abc"
+  },
+  {
+    "name": "abc"
+  },
+  {
+    "name": "abc"
+  },
+  {
+    "name": "abc"
+  },
+  {
+    "name": "abc"
+  }
+]

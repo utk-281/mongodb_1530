@@ -665,18 +665,18 @@ let laptop2 = {
   properties   │         scale      SQL with
   critical?    │         massively? careful
       │        │             │      planning
-  ┌───┴───┐   │         ┌───┴───┐
- YES      NO  │        YES      NO
-  │        │  │         │        │
-  │        │  │         │        │
-  SQL     ↓  │         │       SQL or
-          │  │      NoSQL    Document DB
-          │  │         │
-          │  └─────────┴────────→ Evaluate:
-          │                      - Data relationships
-          │                      - Query patterns
-          │                      - Team expertise
-          │                      - Scale requirements
+  ┌───┴───┐    │         ┌───┴───┐
+ YES      NO   │        YES      NO
+  │        │   │         │        │
+  │        │   │         │        │
+  SQL     ↓    │         │       SQL or
+          │    │      NoSQL    Document DB
+          │    │         │
+          │    └─────────┴──────── → Evaluate:
+          │                        - Data relationships
+          │                        - Query patterns
+          │                        - Team expertise
+          │                        - Scale requirements
           │
           └─────────→ Choose appropriate database type
 ```
@@ -826,6 +826,651 @@ db.students.deleteOne({ name: "Varun" });
 
 ---
 
+---
+
+## MongoDB - Deep Dive
+
+### What is MongoDB?
+
+**MongoDB** is a document-based NoSQL database that stores data in JSON-like documents (BSON format) and is dynamic in nature.
+
+**Key Characteristics:**
+
+- Document-oriented storage
+- Flexible schema (no predefined structure required)
+- High performance and scalability
+- Rich query language
+- Built-in replication and sharding
+
+```
+┌────────────────────────────────────────────────┐
+│           MongoDB Architecture                 │
+├────────────────────────────────────────────────┤
+│                                                │
+│  Application                                   │
+│       │                                        │
+│       ├─────→ MongoDB Compass (GUI)            │
+│       │             ↓                          │
+│       ├─────→ Mongo Shell (CLI)                │
+│       │             ↓                          │
+│       └─────→ Driver (Node.js/Python/etc.)     │
+│                     ↓                          │
+│              MongoDB Server                    │
+│         (mongodb://localhost:27017/)           │
+│                     ↓                          │
+│              ┌──────────────┐                  │
+│              │  Databases   │                  │
+│              │  Collections │                  │
+│              │  Documents   │                  │
+│              └──────────────┘                  │
+│                                                │
+└────────────────────────────────────────────────┘
+```
+
+---
+
+## MongoDB Installation
+
+To work with MongoDB, you need to install three essential components:
+
+### 1. MongoDB Community Server
+
+**Purpose**: The core database server that stores and manages your data
+
+**Download Link**:
+
+```
+https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.2.1-signed.msi
+```
+
+**What it does:**
+
+- Runs the MongoDB database service
+- Listens for connections on port 27017 (default)
+- Stores all database files
+- Provides the database engine
+
+**Server Address**: `mongodb://localhost:27017/`
+
+```
+┌─────────────────────────────────────────┐
+│      MongoDB Community Server           │
+├─────────────────────────────────────────┤
+│                                         │
+│  • Core database engine                 │
+│  • Default port: 27017                  │
+│  • Stores data on disk                  │
+│  • Handles queries and operations       │
+│  • Manages connections                  │
+│                                         │
+└─────────────────────────────────────────┘
+```
+
+---
+
+### 2. MongoDB Compass
+
+**Purpose**: Graphical User Interface (GUI) for MongoDB
+
+**Download Link**:
+
+```
+https://downloads.mongodb.com/compass/mongodb-compass-1.48.2-win32-x64.exe
+```
+
+**What it does:**
+
+- Visual interface to interact with databases
+- Perform CRUD operations without writing code
+- View and analyze data visually
+- Create and manage databases, collections
+- Query builder and aggregation pipeline builder
+
+**Important Note**:
+
+- ❌ Cannot insert JavaScript objects directly
+- ✅ Only accepts JSON format for data insertion
+
+```
+┌─────────────────────────────────────────────────────┐
+│          MongoDB Compass (GUI)                      │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  ┌───────────────────────────────────────────┐      │
+│  │  Visual Interface                         │      │
+│  │  • Browse databases & collections         │      │
+│  │  • Insert/Update/Delete documents         │      │
+│  │  • Run queries visually                   │      │
+│  │  • View query performance                 │      │
+│  │  • Schema analysis                        │      │
+│  │  • Import/Export data                     │      │
+│  └───────────────────────────────────────────┘      │
+│                                                     │
+│  Limitation: Only accepts JSON, not JS objects      │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**Example - Compass Data Entry:**
+
+```json
+// ✅ VALID in Compass (JSON format)
+{
+  "name": "Varun",
+  "age": 20,
+  "subjects": ["English", "Math"]
+}
+
+// ❌ INVALID in Compass (JavaScript object)
+let user = {
+  name: "Varun",
+  age: 20,
+  subjects: ["English", "Math"]
+};
+```
+
+---
+
+### 3. Mongo Shell (mongosh)
+
+**Purpose**: Command-Line Interface (CLI) for MongoDB
+
+**Download Link**:
+
+```
+https://downloads.mongodb.com/compass/mongosh-2.5.9-x64.msi
+```
+
+**What it does:**
+
+- Interactive shell to execute MongoDB commands
+- Built using JavaScript
+- Accepts both JavaScript objects and JSON
+- Scripting and automation capabilities
+- Advanced operations and administration
+
+**Key Features:**
+
+- ✅ Can insert JavaScript objects
+- ✅ Can insert JSON data
+- ✅ Full programmatic control
+- ✅ Execute complex queries and operations
+
+```
+┌─────────────────────────────────────────────────────┐
+│         Mongo Shell (mongosh) - CLI                 │
+├─────────────────────────────────────────────────────┤
+│                                                     │
+│  $ mongosh                                          │
+│  Current Mongosh Log ID: ...                        │
+│  Connecting to: mongodb://localhost:27017/          │
+│  Using MongoDB: 8.2.1                               │
+│                                                     │
+│  test> show dbs                                     │
+│  test> use myDatabase                               │
+│  test> db.collection.insertOne({...})               │
+│                                                     │
+│  Features:                                          │
+│  • JavaScript-based shell                           │
+│  • Accepts JS objects and JSON                      │
+│  • Command history                                  │
+│  • Auto-completion                                  │
+│  • Scripting support                                │
+│                                                     │
+└─────────────────────────────────────────────────────┘
+```
+
+**Example - Shell Data Entry:**
+
+```javascript
+// ✅ VALID in Shell (JavaScript object)
+db.students.insertOne({
+  name: "Varun",
+  age: 20,
+  subjects: ["English", "Math"],
+});
+
+// ✅ Also VALID in Shell (JSON format)
+db.students.insertOne({
+  name: "Ashwin",
+  age: 21,
+  subjects: ["Science", "History"],
+});
+
+// ✅ VALID - Using variables (only in shell)
+let newUser = {
+  name: "Chetna",
+  age: 22,
+  email: "chetna@example.com",
+};
+db.students.insertOne(newUser);
+```
+
+---
+
+## MongoDB Components
+
+### Component Comparison
+
+| Component           | Type            | Code Required    | Data Format       | Best For                                   |
+| ------------------- | --------------- | ---------------- | ----------------- | ------------------------------------------ |
+| **MongoDB Server**  | Database Engine | N/A              | BSON              | Core database operations                   |
+| **MongoDB Compass** | GUI             | No               | JSON only         | Visual data exploration, beginners         |
+| **Mongo Shell**     | CLI             | Yes (JavaScript) | JSON + JS Objects | Advanced operations, scripting, developers |
+
+---
+
+## MongoDB Server Management
+
+### Server Control Commands
+
+The MongoDB server must be running for Compass and Shell to connect to it.
+
+#### Starting and Stopping Server (Windows)
+
+**Open Command Prompt as Administrator**, then use:
+
+```bash
+# Stop MongoDB Server
+net stop mongodb
+
+# Start MongoDB Server
+net start mongodb
+
+# Check MongoDB Service Status
+sc query mongodb
+```
+
+**Visual Workflow:**
+
+```
+┌────────────────────────────────────────────────────┐
+│       MongoDB Server Management                    │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  1. Open CMD as Administrator                      │
+│     Right-click CMD → Run as administrator         │
+│                                                    │
+│  2. Stop Server                                    │
+│     > net stop mongodb                             │
+│     The MongoDB Server service is stopping.        │
+│     The MongoDB Server service was stopped.        │
+│                                                    │
+│  3. Start Server                                   │
+│     > net start mongodb                            │
+│     The MongoDB Server service is starting.        │
+│     The MongoDB Server service was started.        │
+│                                                    │
+│  ⚠️  Server must be running for connections!       │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Using Mongo Shell (mongosh)
+
+#### Entering the Shell
+
+```bash
+# Open regular Command Prompt (no admin rights needed)
+> mongosh
+
+# You'll see:
+Current Mongosh Log ID: 65a1b2c3d4e5f6g7h8i9j0k1
+Connecting to:          mongodb://localhost:27017/?directConnection=true
+Using MongoDB:          8.2.1
+Using Mongosh:          2.5.9
+
+test>
+```
+
+#### Exiting the Shell
+
+```bash
+# Method 1: Using exit command
+test> .exit
+
+# Method 2: Using keyboard shortcut
+test> [Press Ctrl+C]
+
+# Method 3: Using exit() function
+test> exit()
+```
+
+**Shell Session Example:**
+
+```
+┌────────────────────────────────────────────────────┐
+│         Mongo Shell Session Example                │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  $ mongosh                                         │
+│  test>                        ← Default database   │
+│                                                    │
+│  test> show dbs               ← List databases     │
+│  admin   40.00 KiB                                 │
+│  config  12.00 KiB                                 │
+│  local   40.00 KiB                                 │
+│                                                    │
+│  test> use mySchool           ← Switch/create DB   │
+│  switched to db mySchool                           │
+│                                                    │
+│  mySchool> db.students.insertOne({                 │
+│  ...   name: "Varun",                              │
+│  ...   age: 20                                     │
+│  ... })                                            │
+│  {                                                 │
+│    acknowledged: true,                             │
+│    insertedId: ObjectId('65a1b2c3d4e5f6g7h8i9j0')  │
+│  }                                                 │
+│                                                    │
+│  mySchool> .exit              ← Exit shell         │
+│  $                                                 │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Start Guide
+
+### Step-by-Step Setup
+
+```
+┌────────────────────────────────────────────────────────┐
+│         MongoDB Quick Start Workflow                   │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  Step 1: Install Components                            │
+│  ├─ Install MongoDB Community Server                   │
+│  ├─ Install MongoDB Compass                            │
+│  └─ Install Mongo Shell (mongosh)                      │
+│                                                        │
+│  Step 2: Start MongoDB Server                          │
+│  └─ Open CMD as Admin → net start mongodb              │
+│                                                        │
+│  Step 3: Choose Your Interface                         │
+│  ├─ Option A: MongoDB Compass (GUI)                    │
+│  │   └─ Connect to: mongodb://localhost:27017/         │
+│  │                                                     │
+│  └─ Option B: Mongo Shell (CLI)                        │
+│      └─ Open CMD → Type: mongosh                       │
+│                                                        │
+│  Step 4: Start Working with Data                       │
+│  ├─ Create databases                                   │
+│  ├─ Create collections                                 │
+│  ├─ Insert documents                                   │
+│  └─ Query and manipulate data                          │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+## MongoDB vs SQL Terminology
+
+| SQL Term    | MongoDB Equivalent | Description                          |
+| ----------- | ------------------ | ------------------------------------ |
+| Database    | Database           | Container for collections            |
+| Table       | Collection         | Container for documents              |
+| Row         | Document           | Single record (JSON-like)            |
+| Column      | Field              | Single data element                  |
+| Primary Key | \_id               | Unique identifier (auto-generated)   |
+| Index       | Index              | Performance optimization             |
+| JOIN        | Embedding/$lookup  | Combining data from multiple sources |
+
+**Visual Comparison:**
+
+```
+┌─────────────────────────────────────────────────────────┐
+│          SQL vs MongoDB Structure                       │
+├─────────────────────────────────────────────────────────┤
+│                                                         │
+│  SQL Database:                                          │
+│  └─ Students Table                                      │
+│      ├─ Row 1: id=1, name="Varun", age=20               │
+│      ├─ Row 2: id=2, name="Ashwin", age=21              │
+│      └─ Row 3: id=3, name="Chetna", age=22              │
+│                                                         │
+│  MongoDB Database:                                      │
+│  └─ students Collection                                 │
+│      ├─ Document 1: {_id: ..., name: "Varun", age: 20}  │
+│      ├─ Document 2: {_id: ..., name: "Ashwin", age: 21} │
+│      └─ Document 3: {_id: ..., name: "Chetna", age: 22} │
+│                                                         │
+└─────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Connection String Format
+
+```
+┌────────────────────────────────────────────────────────┐
+│         MongoDB Connection String                      │
+├────────────────────────────────────────────────────────┤
+│                                                        │
+│  mongodb://localhost:27017/                            │
+│  └─┬─┘   └────┬────┘ └─┬─┘                             │
+│    │          │        │                               │
+│    │          │        └─ Port number                  │
+│    │          └────────── Host (localhost = your PC)   │
+│    └───────────────────── Protocol                     │
+│                                                        │
+│  Full format with options:                             │
+│  mongodb://username:password@host:port/database?options│
+│                                                        │
+│  Examples:                                             │
+│  • mongodb://localhost:27017/                          │
+│  • mongodb://localhost:27017/myDatabase                │
+│  • mongodb://user:pass@localhost:27017/myDB            │
+│  • mongodb://192.168.1.100:27017/                      │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Key Differences: Compass vs Shell
+
+### MongoDB Compass (GUI)
+
+**Advantages:**
+
+- ✅ User-friendly visual interface
+- ✅ No coding knowledge required
+- ✅ Great for beginners
+- ✅ Easy data visualization
+- ✅ Point-and-click operations
+- ✅ Built-in query builder
+
+**Limitations:**
+
+- ❌ Only accepts JSON format
+- ❌ Cannot use JavaScript variables
+- ❌ Limited scripting capabilities
+- ❌ Slower for bulk operations
+
+**Best For:**
+
+- Quick data exploration
+- Beginners learning MongoDB
+- Visual schema analysis
+- One-off manual operations
+
+---
+
+### Mongo Shell (CLI)
+
+**Advantages:**
+
+- ✅ Accepts JavaScript objects and JSON
+- ✅ Full programming capabilities
+- ✅ Can use variables and functions
+- ✅ Scripting and automation
+- ✅ Faster for bulk operations
+- ✅ More powerful and flexible
+
+**Limitations:**
+
+- ❌ Requires command-line knowledge
+- ❌ Steeper learning curve
+- ❌ No visual interface
+- ❌ Text-based only
+
+**Best For:**
+
+- Advanced operations
+- Automation and scripting
+- Development and testing
+- Bulk operations
+- Production management
+
+---
+
+## MongoDB Installation Checklist
+
+```markdown
+### Installation Verification Checklist
+
+□ MongoDB Community Server installed
+└─ Verify: Open Services → Find "MongoDB Server"
+
+□ MongoDB Compass installed
+└─ Verify: Launch Compass → See connection screen
+
+□ Mongo Shell (mongosh) installed
+└─ Verify: Open CMD → Type "mongosh --version"
+
+□ MongoDB Server is running
+└─ Verify: CMD (Admin) → "sc query mongodb"
+Look for "STATE: RUNNING"
+
+□ Can connect via Compass
+└─ Verify: Open Compass → Connect to localhost:27017
+Should see "admin", "config", "local" databases
+
+□ Can connect via Shell
+└─ Verify: CMD → "mongosh"
+Should see connection success message
+
+✅ All checks passed? You're ready to start using MongoDB!
+```
+
+---
+
+## Common Issues and Solutions
+
+### Issue 1: Cannot Connect to Server
+
+```
+❌ Error: connect ECONNREFUSED 127.0.0.1:27017
+
+✅ Solution:
+1. Check if MongoDB Server is running
+   CMD (Admin) → net start mongodb
+
+2. Check if port 27017 is available
+   CMD → netstat -ano | findstr :27017
+
+3. Check firewall settings
+```
+
+### Issue 2: mongosh Command Not Found
+
+```
+❌ Error: 'mongosh' is not recognized
+
+✅ Solution:
+1. Verify installation
+   Check: C:\Program Files\mongosh\
+
+2. Add to PATH environment variable
+   System Properties → Environment Variables
+   → Add mongosh bin directory to PATH
+
+3. Restart Command Prompt
+```
+
+### Issue 3: Access Denied When Starting Server
+
+```
+❌ Error: Access is denied
+
+✅ Solution:
+1. Run Command Prompt as Administrator
+   Right-click CMD → "Run as administrator"
+
+2. Then execute: net start mongodb
+```
+
+---
+
+## Summary
+
+### Key Takeaways:
+
+1. **MongoDB** is a document-based NoSQL database storing data as JSON-like documents
+
+2. **Three Components** needed:
+
+   - **MongoDB Server**: The database engine (mongodb://localhost:27017/)
+   - **MongoDB Compass**: GUI for visual data management (JSON only)
+   - **Mongo Shell**: CLI for programmatic access (JavaScript + JSON)
+
+3. **Server Management**:
+
+   - Start: `net start mongodb` (Admin CMD)
+   - Stop: `net stop mongodb` (Admin CMD)
+
+4. **Shell Commands**:
+
+   - Enter: `mongosh`
+   - Exit: `.exit` or `Ctrl+C`
+
+5. **Compass vs Shell**:
+
+   - Compass: User-friendly, JSON only, visual interface
+   - Shell: More powerful, JavaScript support, automation
+
+6. **Data Format**:
+   - Compass: JSON format only
+   - Shell: Both JavaScript objects and JSON
+
+---
+
+## Summary
+
+### Key Takeaways:
+
+1. **Data vs Information**: Data is raw facts; information is processed data with meaning
+
+2. **SQL Databases**:
+
+   - Structured, table-based storage
+   - Fixed schema, ACID properties
+   - Best for: Complex relationships, transactions, data integrity
+
+3. **NoSQL Databases**:
+
+   - Flexible, document/key-value/graph/column storage
+   - Dynamic schema, BASE properties
+   - Best for: Scalability, flexibility, large datasets
+
+4. **Scaling**:
+
+   - Vertical: Upgrade existing hardware (SQL-friendly)
+   - Horizontal: Add more machines (NoSQL-friendly)
+
+5. **Choose Based On**:
+   - Data structure requirements
+   - Scalability needs
+   - Consistency requirements
+   - Team expertise
+
+---
+
 ## Glossary
 
 | Term                | Definition                                                                 |
@@ -833,6 +1478,10 @@ db.students.deleteOne({ name: "Varun" });
 | **ACID**            | Atomicity, Consistency, Isolation, Durability - SQL transaction properties |
 | **BASE**            | Basically Available, Soft state, Eventually consistent - NoSQL properties  |
 | **BSON**            | Binary JSON - MongoDB's document storage format                            |
+| **Collection**      | MongoDB equivalent of a table - stores documents                           |
+| **Document**        | MongoDB equivalent of a row - JSON-like record                             |
+| **mongosh**         | MongoDB Shell - Command-line interface for MongoDB                         |
+| **Compass**         | MongoDB Compass - GUI tool for MongoDB                                     |
 | **CRUD**            | Create, Read, Update, Delete - Basic database operations                   |
 | **Schema**          | Structure/blueprint defining how data is organized                         |
 | **Normalization**   | Organizing data to reduce redundancy                                       |
@@ -842,24 +1491,14 @@ db.students.deleteOne({ name: "Varun" });
 
 ---
 
-## Contributing
-
-This document is a living resource. As you add more notes:
-
-1. Update the Table of Contents
-2. Add new sections in appropriate locations
-3. Include examples and diagrams
-4. Update the "Next Topics" section
-5. Cross-reference related concepts
-
 ---
 
-**Last Updated**: 2025
-
-**Author**: utk
---
-**Version**: 1.0
+**Last Updated**: 2024
+**Version**: 1.1 (Added MongoDB Deep Dive)
+**Author**: Utkarsh
 
 ---
 
 _Remember: The choice between SQL and NoSQL isn't about which is better, but which is more appropriate for your specific use case!_
+
+---

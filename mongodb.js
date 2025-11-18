@@ -66,7 +66,7 @@ userB = {
 //~ properties --> BASE(basically available, eventually consistent, not durable)
 //~ examples --> mongoDB, couchDB
 
-//! scaling --> scaling refers to altering the size or capaciry of something
+//! scaling --> scaling refers to altering the size or capacity of something
 
 // let myLaptop = {
 //   RAM: 16,
@@ -80,16 +80,72 @@ let myLaptopUpgraded = {
   RAM: 32,
   HDD: 2024,
 };
-//? this is known as vertical scaling: in vertical scaling=, new resources are added to the existing system
+//? this is known as vertical scaling: in vertical scaling, new resources are added to the existing system
 
 //? in case of horizontal scaling --> you are buying a new laptop
 //? in horizontal scaling= new resources are added with the existing system
-let myLaptop = {
-  RAM: 16,
-  HDD: 1024,
-};
 
-let newLaptop = {
-  RAM: 32,
-  HDD: 2024,
-};
+//! ====================================== mongoDB =================================
+//~ It is a document based nosql database which stores data in JSON like documents and is dynamic in nature.
+
+//! install three things
+//? https://fastdl.mongodb.org/windows/mongodb-windows-x86_64-8.2.1-signed.msi ==> community server
+
+//? https://downloads.mongodb.com/compass/mongodb-compass-1.48.2-win32-x64.exe ==> compass
+
+//? https://downloads.mongodb.com/compass/mongosh-2.5.9-x64.msi ==> mongosh (mongo shell)
+
+//! mongodb server --> it is a database server, through which we can connect to the database and interact with it, it's address is "mongodb://localhost:27017/"
+//~ to start or stop the server >> open cmd as admin >> stop --> "net stop mongodb" >> start --> "net start mongodb"
+
+//! compass --> it is a GUI (graphical user interface), using which we can interact with database without writing any code.
+//? interaction means CRUD operations (create, read, update, delete)
+//? in compass, js objects cannot be inserted.
+
+//! shell --> (command line interface), it is a interface through which we can interact with db with the help of commands (code). it is built using javascript i.e, using shell we can pass either js objects or json data
+
+//? to enter mongosh --> open cmd >> type mongosh >> press enter
+//? to exit mongosh --> type .exit or press ctrl+c >> press enter
+
+//! =================== shell commands =====================================
+
+//? 1) to list all the databases
+//~ ==> show dbs or show databases
+
+//? 2) to create a new database or to switch to a database
+//~ ==> use database_name
+//& use library
+//& here, if the database name does not exist, it will be created otherwise it will switch to that database
+
+//! the shell prompt denotes current database and by default it is set to test db
+//! after every operation, if we want to see the changes in compass, i need to refresh the compass application
+
+//? 3) to create a collection --> createCollection()
+//~ db.createCollection("collection_name")
+//& example db.createCollection("books")
+
+//! what is the datatype of db? ==> object
+
+//? 4) to display all the collections present in the database
+//~ show collections
+
+//! create a school database and inside that create 3 collections 1) students 2) teachers 3) otherStaff
+
+//~ shell shortcuts -- 1) press tab to get auto complete
+//~ 2) use up and down arrow keys to go through all the previous commands
+//~ 3) type cls or press ctrl+l to clear the shell
+
+//~ 5) to rename the collection --> renameCollection()
+db.collection_name.renameCollection("new_collection_name");
+//& example -->
+db.otherStaff.renameCollection("faculty");
+
+//! in mongodb, renaming database is not possible
+
+//~ 6) to delete a collection --> drop()
+db.collection_name.drop();
+//& example -->
+db.faculty.drop();
+
+//~ 7) to delete a database --> dropDatabase()
+db.dropDatabase();
