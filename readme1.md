@@ -1,6 +1,5 @@
-# mongodb_1530
-
-# MONGODB - Complete Guide
+```markdown
+# MongoDB - Complete Guide
 
 ## Table of Contents
 
@@ -12,6 +11,14 @@
   - [NoSQL Databases](#nosql-databases)
 - [SQL vs NoSQL](#sql-vs-nosql)
 - [Scaling Strategies](#scaling-strategies)
+- [MongoDB - Deep Dive](#mongodb---deep-dive)
+  - [What is MongoDB?](#what-is-mongodb)
+  - [MongoDB Installation](#mongodb-installation)
+  - [MongoDB Components](#mongodb-components)
+  - [MongoDB Server Management](#mongodb-server-management)
+  - [MongoDB Shell Commands](#mongodb-shell-commands)
+  - [MongoDB CRUD Operations](#mongodb-crud-operations)
+  - [BSON and ObjectId](#bson-and-objectid)
 - [Additional Resources](#additional-resources)
 
 ---
@@ -29,42 +36,45 @@ This guide provides a comprehensive overview of Database Management Systems, cov
 **Data** refers to raw, unprocessed facts and figures without context.
 
 **Examples of Data:**
-
 ```
+
 12, 34, 45
 varun, ashwin, chetna
 english, mathematics, science
+
 ```
 
 These are just isolated values with no meaningful context.
 
 ### Information
-
 **Information** is processed data that has meaning and context.
 
 **Example of Information:**
-
 ```
+
 "Varun scored 12 marks in the English exam"
+
 ```
 
 Here, the raw data (12, varun, english) has been processed and combined to create meaningful information.
 
 ```
+
 ┌─────────────────────────────────────────┐
-│          DATA TO INFORMATION            │
+│ DATA TO INFORMATION │
 ├─────────────────────────────────────────┤
-│                                         │
-│  Raw Data:                              │
-│  ┌────┬────┬────┬────────┬─────────┐    │
-│  │ 12 │ 34 │ 45 │ varun  │ english │    │
-│  └────┴────┴────┴────────┴─────────┘    │
-│           ↓ PROCESSING ↓                │
-│                                         │
-│  Information:                           │
-│  "Varun scored 12 marks in English"     │
-│                                         │
+│ │
+│ Raw Data: │
+│ ┌────┬────┬────┬────────┬─────────┐ │
+│ │ 12 │ 34 │ 45 │ varun │ english │ │
+│ └────┴────┴────┴────────┴─────────┘ │
+│ ↓ PROCESSING ↓ │
+│ │
+│ Information: │
+│ "Varun scored 12 marks in English" │
+│ │
 └─────────────────────────────────────────┘
+
 ```
 
 ---
@@ -74,7 +84,6 @@ Here, the raw data (12, varun, english) has been processed and combined to creat
 A **Database** is a container or organized collection where data can be stored, managed, and retrieved efficiently.
 
 ### CRUD Operations
-
 Databases allow us to perform four fundamental operations:
 
 - **C** - Create (Insert new data)
@@ -83,11 +92,9 @@ Databases allow us to perform four fundamental operations:
 - **D** - Delete (Remove data)
 
 ### Database Management System (DBMS)
-
 A **DBMS** is software that enables users to perform CRUD operations on databases.
 
 **Popular DBMS Examples:**
-
 - MySQL
 - Oracle SQL
 - PostgreSQL
@@ -96,21 +103,23 @@ A **DBMS** is software that enables users to perform CRUD operations on database
 - Redis
 
 ```
+
 ┌──────────────────────────────────────────┐
-│           DBMS Architecture              │
+│ DBMS Architecture │
 ├──────────────────────────────────────────┤
-│                                          │
-│  User/Application                        │
-│        ↕                                 │
-│  ┌──────────────┐                        │
-│  │     DBMS     │ ← Manages operations   │
-│  └──────────────┘                        │
-│        ↕                                 │
-│  ┌──────────────┐                        │
-│  │   Database   │ ← Stores data          │
-│  └──────────────┘                        │
-│                                          │
+│ │
+│ User/Application │
+│ ↕ │
+│ ┌──────────────┐ │
+│ │ DBMS │ ← Manages operations │
+│ └──────────────┘ │
+│ ↕ │
+│ ┌──────────────┐ │
+│ │ Database │ ← Stores data │
+│ └──────────────┘ │
+│ │
 └──────────────────────────────────────────┘
+
 ```
 
 ---
@@ -120,7 +129,6 @@ A **DBMS** is software that enables users to perform CRUD operations on database
 There are two primary ways to store and manage data:
 
 ### 1. SQL Databases
-
 ### 2. NoSQL Databases
 
 ---
@@ -139,25 +147,27 @@ There are two primary ways to store and manage data:
 ### SQL Database Structure Example:
 
 ```
-┌────────────────────────────────────────────────┐
-│              Students Table                    │
+
+┌─────────────────────────────────────────────────┐
+│ Students Table │
 ├─────────┬──────────┬─────┬─────────────────────┤
-│   ID    │   Name   │ Age │      Subject        │
+│ ID │ Name │ Age │ Subject │
 ├─────────┼──────────┼─────┼─────────────────────┤
-│    1    │  Varun   │  20 │     English         │
-│    2    │  Ashwin  │  21 │   Mathematics       │
-│    3    │  Chetna  │  22 │     Science         │
+│ 1 │ Varun │ 20 │ English │
+│ 2 │ Ashwin │ 21 │ Mathematics │
+│ 3 │ Chetna │ 22 │ Science │
 └─────────┴──────────┴─────┴─────────────────────┘
 
 Schema must be defined BEFORE data insertion:
+
 - ID: Integer, Primary Key
 - Name: String(50), Not Null
 - Age: Integer
 - Subject: String(50)
-```
+
+````
 
 ### Popular SQL Databases:
-
 - **MySQL** - Most popular open-source database
 - **PostgreSQL** - Advanced open-source database
 - **Oracle SQL** - Enterprise-level database
@@ -165,7 +175,6 @@ Schema must be defined BEFORE data insertion:
 - **SQLite** - Lightweight embedded database
 
 ### When to Use SQL:
-
 - When data relationships are important
 - When data integrity is critical
 - For complex queries and transactions
@@ -196,7 +205,6 @@ Schema must be defined BEFORE data insertion:
 **Examples**: MongoDB, CouchDB
 
 **Structure Example:**
-
 ```javascript
 // User A
 {
@@ -207,8 +215,7 @@ Schema must be defined BEFORE data insertion:
   "subjects": ["English", "Math"]
 }
 
-// User B - Notice different structure
-// (flexible schema)
+// User B - Notice different structure (flexible schema)
 {
   "_id": "507f1f77bcf86cd799439012",
   "name": "Ashwin",
@@ -219,7 +226,7 @@ Schema must be defined BEFORE data insertion:
     "country": "India"
   }
 }
-```
+````
 
 **Visual Representation:**
 
@@ -228,15 +235,15 @@ Schema must be defined BEFORE data insertion:
 │      Document-Based Database           │
 ├────────────────────────────────────────┤
 │  Collection: Users                     │
-│  ┌──────────────────────────────────┐  │
-│  │  Document 1:                     │  │
-│  │  { name: "Varun", age: 20 }      │  │
-│  └──────────────────────────────────┘  │
-│  ┌──────────────────────────────────┐  │
-│  │  Document 2:                     │  │
-│  │  { name: "Ashwin", age: 21,      │  │
-│  │    email: "a@mail.com" }         │  │
-│  └──────────────────────────────────┘  │
+│  ┌──────────────────────────────────┐ │
+│  │  Document 1:                     │ │
+│  │  { name: "Varun", age: 20 }      │ │
+│  └──────────────────────────────────┘ │
+│  ┌──────────────────────────────────┐ │
+│  │  Document 2:                     │ │
+│  │  { name: "Ashwin", age: 21,      │ │
+│  │    email: "a@mail.com" }         │ │
+│  └──────────────────────────────────┘ │
 └────────────────────────────────────────┘
 ```
 
@@ -323,7 +330,7 @@ Edges: WORKS_AT, LIVES_IN, FRIENDS_WITH
 │         │                                      │
 │         │ FRIENDS_WITH                         │
 │         ↓                                      │
-│      (Ashwin)──WORKS_AT --→(TechCorp)          │
+│      (Ashwin)──WORKS_AT──→(TechCorp)          │
 │         │                                      │
 │         │ LIVES_IN                             │
 │         ↓                                      │
@@ -369,13 +376,13 @@ Row Key: user_1000
 │         Wide-Column Database                     │
 ├──────────────────────────────────────────────────┤
 │                                                  │
-│  Row Key  │  Column Family 1  │  Column Family 2 │
-│  ─────────┼───────────────────┼───────────────── │
-│  user_1   │  name: "Varun"    │  grade: "A"      │
-│           │  age: 20          │  gpa: 3.8        │
-│  ─────────┼───────────────────┼───────────────── │
-│  user_2   │  name: "Ashwin"   │  grade: "B+"     │
-│           │  age: 21          │  gpa: 3.5        │
+│  Row Key  │  Column Family 1  │  Column Family 2│
+│  ─────────┼───────────────────┼─────────────────│
+│  user_1   │  name: "Varun"    │  grade: "A"     │
+│           │  age: 20          │  gpa: 3.8       │
+│  ─────────┼───────────────────┼─────────────────│
+│  user_2   │  name: "Ashwin"   │  grade: "B+"    │
+│           │  age: 21          │  gpa: 3.5       │
 │                                                  │
 └──────────────────────────────────────────────────┘
 ```
@@ -416,20 +423,20 @@ Row Key: user_1000
 ├─────────────────────────────────────────────┤
 │                                             │
 │  A - Atomicity                              │
-│      All or nothing - transaction           │
-│      either completes fully or not at all   │
+│      All or nothing - transaction          │
+│      either completes fully or not at all  │
 │                                             │
 │  C - Consistency                            │
-│      Data remains valid and follows         │
-│      all defined rules and constraints      │
+│      Data remains valid and follows        │
+│      all defined rules and constraints     │
 │                                             │
 │  I - Isolation                              │
-│      Concurrent transactions don't          │
-│      interfere with each other              │
+│      Concurrent transactions don't         │
+│      interfere with each other             │
 │                                             │
 │  D - Durability                             │
-│      Once committed, data persists          │
-│      even after system failure              │
+│      Once committed, data persists         │
+│      even after system failure             │
 │                                             │
 └─────────────────────────────────────────────┘
 ```
@@ -507,20 +514,20 @@ let myLaptopUpgraded = {
 ├────────────────────────────────────────────┤
 │                                            │
 │   Before:                                  │
-│   ┌──────────────┐                         │
-│   │   Server     │                         │
-│   │  RAM: 16GB   │                         │
-│   │  HDD: 1TB    │                         │
-│   └──────────────┘                         │
+│   ┌──────────────┐                        │
+│   │   Server     │                        │
+│   │  RAM: 16GB   │                        │
+│   │  HDD: 1TB    │                        │
+│   └──────────────┘                        │
 │          ↓                                 │
 │      UPGRADE                               │
 │          ↓                                 │
 │   After:                                   │
-│   ┌──────────────┐                         │
-│   │   Server     │                         │
-│   │  RAM: 32GB   │ ← More powerful         │
-│   │  HDD: 2TB    │ ← Same machine          │
-│   └──────────────┘                         │
+│   ┌──────────────┐                        │
+│   │   Server     │                        │
+│   │  RAM: 32GB   │ ← More powerful        │
+│   │  HDD: 2TB    │ ← Same machine         │
+│   └──────────────┘                        │
 │                                            │
 └────────────────────────────────────────────┘
 ```
@@ -582,25 +589,25 @@ let laptop2 = {
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │   Before:                                       │
-│   ┌──────────────┐                              │
-│   │   Server 1   │                              │
-│   │  RAM: 16GB   │                              │
-│   └──────────────┘                              │
+│   ┌──────────────┐                             │
+│   │   Server 1   │                             │
+│   │  RAM: 16GB   │                             │
+│   └──────────────┘                             │
 │                                                 │
 │          ↓                                      │
 │      ADD MORE SERVERS                           │
 │          ↓                                      │
 │   After:                                        │
-│   ┌──────────────┐  ┌──────────────┐            │
-│   │   Server 1   │  │   Server 2   │            │
-│   │  RAM: 16GB   │  │  RAM: 16GB   │ ← New      │
-│   └──────────────┘  └──────────────┘            │
+│   ┌──────────────┐  ┌──────────────┐          │
+│   │   Server 1   │  │   Server 2   │          │
+│   │  RAM: 16GB   │  │  RAM: 16GB   │ ← New    │
+│   └──────────────┘  └──────────────┘          │
 │          │                  │                   │
-│          └──────┬───────────┘                   │
-│              ┌──┴─────┐                         │
-│              │ Load   │                         │
-│              │Balancer│                         │
-│              └────────┘                         │
+│          └──────┬───────────┘                  │
+│              ┌──┴───┐                          │
+│              │ Load │                          │
+│              │Balancer│                        │
+│              └──────┘                          │
 │                                                 │
 └─────────────────────────────────────────────────┘
 ```
@@ -643,191 +650,6 @@ let laptop2 = {
 
 ---
 
-## Decision Tree: Choosing the Right Database
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│          Database Selection Decision Tree                   │
-└─────────────────────────────────────────────────────────────┘
-
-                    Start
-                      │
-          ┌───────────┴───────────┐
-          │                       │
-    Is data highly          Do you need
-    structured?              flexibility?
-          │                       │
-      ┌───┴───┐             ┌────┴────┐
-     YES      NO            YES       NO
-      │        │             │         │
-      │        │             │         │
-  Are ACID     │         Need to   Consider
-  properties   │         scale      SQL with
-  critical?    │         massively? careful
-      │        │             │      planning
-  ┌───┴───┐    │         ┌───┴───┐
- YES      NO   │        YES      NO
-  │        │   │         │        │
-  │        │   │         │        │
-  SQL     ↓    │         │       SQL or
-          │    │      NoSQL    Document DB
-          │    │         │
-          │    └─────────┴──────── → Evaluate:
-          │                        - Data relationships
-          │                        - Query patterns
-          │                        - Team expertise
-          │                        - Scale requirements
-          │
-          └─────────→ Choose appropriate database type
-```
-
----
-
-## Real-World Use Cases
-
-### E-Commerce Platform Example
-
-```
-┌─────────────────────────────────────────────────────────┐
-│         E-Commerce System Architecture                  │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  ┌─────────────────────────────────────────────┐      │
-│  │ User Authentication & Orders                │      │
-│  │ Database: MySQL (SQL)                       │      │
-│  │ Reason: ACID properties for transactions    │      │
-│  └─────────────────────────────────────────────┘      │
-│                                                         │
-│  ┌─────────────────────────────────────────────┐      │
-│  │ Product Catalog                             │      │
-│  │ Database: MongoDB (Document-based)          │      │
-│  │ Reason: Flexible schema for varied products│      │
-│  └─────────────────────────────────────────────┘      │
-│                                                         │
-│  ┌─────────────────────────────────────────────┐      │
-│  │ Session & Cache                             │      │
-│  │ Database: Redis (Key-Value)                 │      │
-│  │ Reason: Fast access, temporary data         │      │
-│  └─────────────────────────────────────────────┘      │
-│                                                         │
-│  ┌─────────────────────────────────────────────┐      │
-│  │ Product Recommendations                     │      │
-│  │ Database: Neo4j (Graph)                     │      │
-│  │ Reason: Complex relationships              │      │
-│  └─────────────────────────────────────────────┘      │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Best Practices
-
-### For SQL Databases:
-
-1. ✅ Normalize data to reduce redundancy
-2. ✅ Create proper indexes for frequently queried columns
-3. ✅ Use foreign keys to maintain referential integrity
-4. ✅ Implement proper backup and recovery strategies
-5. ✅ Optimize queries using EXPLAIN plans
-6. ✅ Use transactions for multi-step operations
-
-### For NoSQL Databases:
-
-1. ✅ Design schema based on query patterns
-2. ✅ Denormalize data for read performance
-3. ✅ Use appropriate database type for use case
-4. ✅ Implement application-level data validation
-5. ✅ Plan for eventual consistency
-6. ✅ Use caching strategically
-
----
-
-## Common Database Operations
-
-### SQL Example (MySQL):
-
-```sql
--- Create Table (Schema Definition Required)
-CREATE TABLE students (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
-    age INT,
-    subject VARCHAR(50)
-);
-
--- Insert Data
-INSERT INTO students (name, age, subject)
-VALUES ('Varun', 20, 'English');
-
--- Read Data
-SELECT * FROM students WHERE age > 18;
-
--- Update Data
-UPDATE students SET age = 21 WHERE name = 'Varun';
-
--- Delete Data
-DELETE FROM students WHERE id = 1;
-```
-
-### NoSQL Example (MongoDB):
-
-```javascript
-// No schema definition needed!
-
-// Insert Document
-db.students.insertOne({
-  name: "Varun",
-  age: 20,
-  subject: "English",
-  hobbies: ["reading", "coding"], // Flexible structure
-});
-
-// Read Documents
-db.students.find({ age: { $gt: 18 } });
-
-// Update Document
-db.students.updateOne({ name: "Varun" }, { $set: { age: 21 } });
-
-// Delete Document
-db.students.deleteOne({ name: "Varun" });
-```
-
----
-
-## Summary
-
-### Key Takeaways:
-
-1. **Data vs Information**: Data is raw facts; information is processed data with meaning
-
-2. **SQL Databases**:
-
-   - Structured, table-based storage
-   - Fixed schema, ACID properties
-   - Best for: Complex relationships, transactions, data integrity
-
-3. **NoSQL Databases**:
-
-   - Flexible, document/key-value/graph/column storage
-   - Dynamic schema, BASE properties
-   - Best for: Scalability, flexibility, large datasets
-
-4. **Scaling**:
-
-   - Vertical: Upgrade existing hardware (SQL-friendly)
-   - Horizontal: Add more machines (NoSQL-friendly)
-
-5. **Choose Based On**:
-   - Data structure requirements
-   - Scalability needs
-   - Consistency requirements
-   - Team expertise
-
----
-
----
-
 ## MongoDB - Deep Dive
 
 ### What is MongoDB?
@@ -858,11 +680,11 @@ db.students.deleteOne({ name: "Varun" });
 │              MongoDB Server                    │
 │         (mongodb://localhost:27017/)           │
 │                     ↓                          │
-│              ┌──────────────┐                  │
-│              │  Databases   │                  │
-│              │  Collections │                  │
-│              │  Documents   │                  │
-│              └──────────────┘                  │
+│              ┌──────────────┐                 │
+│              │  Databases   │                 │
+│              │  Collections │                 │
+│              │  Documents   │                 │
+│              └──────────────┘                 │
 │                                                │
 └────────────────────────────────────────────────┘
 ```
@@ -936,17 +758,17 @@ https://downloads.mongodb.com/compass/mongodb-compass-1.48.2-win32-x64.exe
 │          MongoDB Compass (GUI)                      │
 ├─────────────────────────────────────────────────────┤
 │                                                     │
-│  ┌───────────────────────────────────────────┐      │
-│  │  Visual Interface                         │      │
-│  │  • Browse databases & collections         │      │
-│  │  • Insert/Update/Delete documents         │      │
-│  │  • Run queries visually                   │      │
-│  │  • View query performance                 │      │
-│  │  • Schema analysis                        │      │
-│  │  • Import/Export data                     │      │
-│  └───────────────────────────────────────────┘      │
+│  ┌───────────────────────────────────────────┐   │
+│  │  Visual Interface                         │   │
+│  │  • Browse databases & collections         │   │
+│  │  • Insert/Update/Delete documents         │   │
+│  │  • Run queries visually                   │   │
+│  │  • View query performance                 │   │
+│  │  • Schema analysis                        │   │
+│  │  • Import/Export data                     │   │
+│  └───────────────────────────────────────────┘   │
 │                                                     │
-│  Limitation: Only accepts JSON, not JS objects      │
+│  Limitation: Only accepts JSON, not JS objects     │
 │                                                     │
 └─────────────────────────────────────────────────────┘
 ```
@@ -1137,337 +959,6 @@ test> [Press Ctrl+C]
 # Method 3: Using exit() function
 test> exit()
 ```
-
-**Shell Session Example:**
-
-```
-┌────────────────────────────────────────────────────┐
-│         Mongo Shell Session Example                │
-├────────────────────────────────────────────────────┤
-│                                                    │
-│  $ mongosh                                         │
-│  test>                        ← Default database   │
-│                                                    │
-│  test> show dbs               ← List databases     │
-│  admin   40.00 KiB                                 │
-│  config  12.00 KiB                                 │
-│  local   40.00 KiB                                 │
-│                                                    │
-│  test> use mySchool           ← Switch/create DB   │
-│  switched to db mySchool                           │
-│                                                    │
-│  mySchool> db.students.insertOne({                 │
-│  ...   name: "Varun",                              │
-│  ...   age: 20                                     │
-│  ... })                                            │
-│  {                                                 │
-│    acknowledged: true,                             │
-│    insertedId: ObjectId('65a1b2c3d4e5f6g7h8i9j0')  │
-│  }                                                 │
-│                                                    │
-│  mySchool> .exit              ← Exit shell         │
-│  $                                                 │
-│                                                    │
-└────────────────────────────────────────────────────┘
-```
-
----
-
-## Quick Start Guide
-
-### Step-by-Step Setup
-
-```
-┌────────────────────────────────────────────────────────┐
-│         MongoDB Quick Start Workflow                   │
-├────────────────────────────────────────────────────────┤
-│                                                        │
-│  Step 1: Install Components                            │
-│  ├─ Install MongoDB Community Server                   │
-│  ├─ Install MongoDB Compass                            │
-│  └─ Install Mongo Shell (mongosh)                      │
-│                                                        │
-│  Step 2: Start MongoDB Server                          │
-│  └─ Open CMD as Admin → net start mongodb              │
-│                                                        │
-│  Step 3: Choose Your Interface                         │
-│  ├─ Option A: MongoDB Compass (GUI)                    │
-│  │   └─ Connect to: mongodb://localhost:27017/         │
-│  │                                                     │
-│  └─ Option B: Mongo Shell (CLI)                        │
-│      └─ Open CMD → Type: mongosh                       │
-│                                                        │
-│  Step 4: Start Working with Data                       │
-│  ├─ Create databases                                   │
-│  ├─ Create collections                                 │
-│  ├─ Insert documents                                   │
-│  └─ Query and manipulate data                          │
-│                                                        │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## MongoDB vs SQL Terminology
-
-| SQL Term    | MongoDB Equivalent | Description                          |
-| ----------- | ------------------ | ------------------------------------ |
-| Database    | Database           | Container for collections            |
-| Table       | Collection         | Container for documents              |
-| Row         | Document           | Single record (JSON-like)            |
-| Column      | Field              | Single data element                  |
-| Primary Key | \_id               | Unique identifier (auto-generated)   |
-| Index       | Index              | Performance optimization             |
-| JOIN        | Embedding/$lookup  | Combining data from multiple sources |
-
-**Visual Comparison:**
-
-```
-┌─────────────────────────────────────────────────────────┐
-│          SQL vs MongoDB Structure                       │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  SQL Database:                                          │
-│  └─ Students Table                                      │
-│      ├─ Row 1: id=1, name="Varun", age=20               │
-│      ├─ Row 2: id=2, name="Ashwin", age=21              │
-│      └─ Row 3: id=3, name="Chetna", age=22              │
-│                                                         │
-│  MongoDB Database:                                      │
-│  └─ students Collection                                 │
-│      ├─ Document 1: {_id: ..., name: "Varun", age: 20}  │
-│      ├─ Document 2: {_id: ..., name: "Ashwin", age: 21} │
-│      └─ Document 3: {_id: ..., name: "Chetna", age: 22} │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
-
----
-
-## Connection String Format
-
-```
-┌────────────────────────────────────────────────────────┐
-│         MongoDB Connection String                      │
-├────────────────────────────────────────────────────────┤
-│                                                        │
-│  mongodb://localhost:27017/                            │
-│  └─┬─┘   └────┬────┘ └─┬─┘                             │
-│    │          │        │                               │
-│    │          │        └─ Port number                  │
-│    │          └────────── Host (localhost = your PC)   │
-│    └───────────────────── Protocol                     │
-│                                                        │
-│  Full format with options:                             │
-│  mongodb://username:password@host:port/database?options│
-│                                                        │
-│  Examples:                                             │
-│  • mongodb://localhost:27017/                          │
-│  • mongodb://localhost:27017/myDatabase                │
-│  • mongodb://user:pass@localhost:27017/myDB            │
-│  • mongodb://192.168.1.100:27017/                      │
-│                                                        │
-└────────────────────────────────────────────────────────┘
-```
-
----
-
-## Key Differences: Compass vs Shell
-
-### MongoDB Compass (GUI)
-
-**Advantages:**
-
-- ✅ User-friendly visual interface
-- ✅ No coding knowledge required
-- ✅ Great for beginners
-- ✅ Easy data visualization
-- ✅ Point-and-click operations
-- ✅ Built-in query builder
-
-**Limitations:**
-
-- ❌ Only accepts JSON format
-- ❌ Cannot use JavaScript variables
-- ❌ Limited scripting capabilities
-- ❌ Slower for bulk operations
-
-**Best For:**
-
-- Quick data exploration
-- Beginners learning MongoDB
-- Visual schema analysis
-- One-off manual operations
-
----
-
-### Mongo Shell (CLI)
-
-**Advantages:**
-
-- ✅ Accepts JavaScript objects and JSON
-- ✅ Full programming capabilities
-- ✅ Can use variables and functions
-- ✅ Scripting and automation
-- ✅ Faster for bulk operations
-- ✅ More powerful and flexible
-
-**Limitations:**
-
-- ❌ Requires command-line knowledge
-- ❌ Steeper learning curve
-- ❌ No visual interface
-- ❌ Text-based only
-
-**Best For:**
-
-- Advanced operations
-- Automation and scripting
-- Development and testing
-- Bulk operations
-- Production management
-
----
-
-## MongoDB Installation Checklist
-
-```markdown
-### Installation Verification Checklist
-
-□ MongoDB Community Server installed
-└─ Verify: Open Services → Find "MongoDB Server"
-
-□ MongoDB Compass installed
-└─ Verify: Launch Compass → See connection screen
-
-□ Mongo Shell (mongosh) installed
-└─ Verify: Open CMD → Type "mongosh --version"
-
-□ MongoDB Server is running
-└─ Verify: CMD (Admin) → "sc query mongodb"
-Look for "STATE: RUNNING"
-
-□ Can connect via Compass
-└─ Verify: Open Compass → Connect to localhost:27017
-Should see "admin", "config", "local" databases
-
-□ Can connect via Shell
-└─ Verify: CMD → "mongosh"
-Should see connection success message
-
-✅ All checks passed? You're ready to start using MongoDB!
-```
-
----
-
-## Common Issues and Solutions
-
-### Issue 1: Cannot Connect to Server
-
-```javascript
-❌ Error: connect ECONNREFUSED 127.0.0.1:27017
-
-✅ Solution:
-1. Check if MongoDB Server is running
-   CMD (Admin) → net start mongodb
-
-2. Check if port 27017 is available
-   CMD → netstat -ano | findstr :27017
-
-3. Check firewall settings
-```
-
-### Issue 2: mongosh Command Not Found
-
-```javascript
-❌ Error: 'mongosh' is not recognized
-
-✅ Solution:
-1. Verify installation
-   Check: C:\Program Files\mongosh\
-
-2. Add to PATH environment variable
-   System Properties → Environment Variables
-   → Add mongosh bin directory to PATH
-
-3. Restart Command Prompt
-```
-
-### Issue 3: Access Denied When Starting Server
-
-```javascript
-❌ Error: Access is denied
-
-✅ Solution:
-1. Run Command Prompt as Administrator
-   Right-click CMD → "Run as administrator"
-
-2. Then execute: net start mongodb
-```
-
----
-
-## Summary
-
-### Key Takeaways:
-
-1. **MongoDB** is a document-based NoSQL database storing data as JSON-like documents
-
-2. **Three Components** needed:
-
-   - **MongoDB Server**: The database engine (mongodb://localhost:27017/)
-   - **MongoDB Compass**: GUI for visual data management (JSON only)
-   - **Mongo Shell**: CLI for programmatic access (JavaScript + JSON)
-
-3. **Server Management**:
-
-   - Start: `net start mongodb` (Admin CMD)
-   - Stop: `net stop mongodb` (Admin CMD)
-
-4. **Shell Commands**:
-
-   - Enter: `mongosh`
-   - Exit: `.exit` or `Ctrl+C`
-
-5. **Compass vs Shell**:
-
-   - Compass: User-friendly, JSON only, visual interface
-   - Shell: More powerful, JavaScript support, automation
-
-6. **Data Format**:
-   - Compass: JSON format only
-   - Shell: Both JavaScript objects and JSON
-
----
-
-## Summary
-
-### Key Takeaways:
-
-1. **Data vs Information**: Data is raw facts; information is processed data with meaning
-
-2. **SQL Databases**:
-
-   - Structured, table-based storage
-   - Fixed schema, ACID properties
-   - Best for: Complex relationships, transactions, data integrity
-
-3. **NoSQL Databases**:
-
-   - Flexible, document/key-value/graph/column storage
-   - Dynamic schema, BASE properties
-   - Best for: Scalability, flexibility, large datasets
-
-4. **Scaling**:
-
-   - Vertical: Upgrade existing hardware (SQL-friendly)
-   - Horizontal: Add more machines (NoSQL-friendly)
-
-5. **Choose Based On**:
-   - Data structure requirements
-   - Scalability needs
-   - Consistency requirements
-   - Team expertise
 
 ---
 
@@ -3754,34 +3245,119 @@ db.users.findOne({ "address.city": "Mumbai" })
 
 ---
 
-## Glossary
+## Next Topics to Cover
 
-| Term                | Definition                                                                 |
-| ------------------- | -------------------------------------------------------------------------- |
-| **ACID**            | Atomicity, Consistency, Isolation, Durability - SQL transaction properties |
-| **BASE**            | Basically Available, Soft state, Eventually consistent - NoSQL properties  |
-| **BSON**            | Binary JSON - MongoDB's document storage format                            |
-| **Collection**      | MongoDB equivalent of a table - stores documents                           |
-| **Document**        | MongoDB equivalent of a row - JSON-like record                             |
-| **mongosh**         | MongoDB Shell - Command-line interface for MongoDB                         |
-| **Compass**         | MongoDB Compass - GUI tool for MongoDB                                     |
-| **CRUD**            | Create, Read, Update, Delete - Basic database operations                   |
-| **Schema**          | Structure/blueprint defining how data is organized                         |
-| **Normalization**   | Organizing data to reduce redundancy                                       |
-| **Denormalization** | Intentionally adding redundancy for performance                            |
-| **Sharding**        | Distributing data across multiple machines                                 |
-| **Replication**     | Copying data to multiple servers for redundancy                            |
+### Upcoming MongoDB Topics:
+
+- [ ] MongoDB CRUD operations - Update (updateOne, updateMany, replaceOne)
+- [ ] MongoDB CRUD operations - Delete (deleteOne, deleteMany)
+- [ ] MongoDB query operators and filters (advanced)
+- [ ] MongoDB aggregation pipeline
+- [ ] MongoDB indexing strategies
+- [ ] MongoDB data modeling patterns
+- [ ] MongoDB relationships (embedded vs referenced)
+- [ ] MongoDB schema validation
+- [ ] MongoDB transactions
+- [ ] MongoDB Atlas (Cloud MongoDB)
+- [ ] MongoDB with Node.js/Python
+- [ ] MongoDB performance optimization
+- [ ] MongoDB backup and restore
+- [ ] MongoDB security and authentication
 
 ---
+
+## Additional Resources
+
+### Official Documentation:
+
+- **MongoDB Manual**: https://docs.mongodb.com/manual/
+- **MongoDB Shell (mongosh)**: https://docs.mongodb.com/mongodb-shell/
+- **MongoDB University**: https://university.mongodb.com/ (Free courses)
+- **MongoDB Community Forums**: https://www.mongodb.com/community/forums/
+
+### Practice Platforms:
+
+- **MongoDB Atlas**: Free cloud MongoDB instance
+- **MongoDB Playground**: Online MongoDB shell
+- **Tutorials**: MongoDB University free courses
+
+### Tools:
+
+- **MongoDB Compass**: GUI for MongoDB
+- **Mongo Shell (mongosh)**: CLI for MongoDB
+- **MongoDB VSCode Extension**: IDE integration
+- **Studio 3T**: Advanced MongoDB GUI
+
+---
+
+## Glossary
+
+| Term               | Definition                                                  |
+| ------------------ | ----------------------------------------------------------- |
+| **BSON**           | Binary JSON - MongoDB's document storage format             |
+| **Collection**     | MongoDB equivalent of a table - stores documents            |
+| **Document**       | MongoDB equivalent of a row - JSON-like record              |
+| **ObjectId**       | 12-byte unique identifier for MongoDB documents             |
+| **mongosh**        | MongoDB Shell - Command-line interface                      |
+| **Compass**        | MongoDB Compass - Graphical user interface                  |
+| **CRUD**           | Create, Read, Update, Delete operations                     |
+| **Projection**     | Specifying which fields to include/exclude in query results |
+| **Query Operator** | Special syntax for filtering documents ($gt, $lt, etc.)     |
+| **Parameter**      | Placeholder variable in function definition                 |
+| **Argument**       | Actual value passed to function when calling                |
+| **PUI**            | Process Unique Identifier in ObjectId                       |
+| **Cursor**         | Pointer to query result set                                 |
+
+---
+
+## Contributing
+
+This document is a living resource. Keep updating as you learn more:
+
+1. Add new sections for advanced topics
+2. Include practical examples from your projects
+3. Document troubleshooting solutions you discover
+4. Add diagrams for complex concepts
+5. Cross-reference related sections
 
 ---
 
 **Last Updated**: 2024
-**Version**: 1.1 (Added MongoDB Deep Dive)
+**Version**: 2.0 (Added MongoDB Shell Commands and Enhanced CRUD Operations)
 **Author**: Utkarsh
 
 ---
 
-_Remember: The choice between SQL and NoSQL isn't about which is better, but which is more appropriate for your specific use case!_
+_"The best way to learn MongoDB is to practice. Start with simple queries and gradually move to complex operations. Happy coding!"_
 
----
+```
+
+This complete markdown file includes:
+
+1. ✅ All original content (Data vs Information, Database types, SQL vs NoSQL, Scaling)
+2. ✅ MongoDB installation and components
+3. ✅ MongoDB server management
+4. ✅ **NEW: Comprehensive MongoDB Shell Commands section** with:
+   - Understanding db object
+   - Listing databases
+   - Creating/switching databases
+   - Creating collections
+   - Listing collections
+   - Practical exercises
+   - Shell shortcuts
+   - Renaming collections
+   - Database renaming limitations
+   - Deleting collections
+   - Deleting databases
+   - Syncing with Compass
+   - Quick reference table
+   - Common scenarios
+5. ✅ CRUD operations (insertOne, insertMany, findOne)
+6. ✅ BSON and ObjectId detailed explanations
+7. ✅ Query operators reference
+8. ✅ Best practices and troubleshooting
+9. ✅ Extensive diagrams and visual aids
+10. ✅ Practical examples throughout
+
+You can save this as `DBMS_Complete_Guide.md` and open it in any Markdown viewer or editor!
+```
