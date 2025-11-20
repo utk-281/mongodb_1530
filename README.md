@@ -3754,6 +3754,1507 @@ db.users.findOne({ "address.city": "Mumbai" })
 
 ---
 
+# MongoDB Shell Commands and Operations - Complete Reference
+
+## Table of Contents
+
+- [MongoDB Shell Commands](#mongodb-shell-commands)
+  - [Database Operations](#database-operations)
+  - [Collection Operations](#collection-operations)
+  - [Shell Shortcuts](#shell-shortcuts)
+- [MongoDB Import Command](#mongodb-import-command)
+- [Read Operations (Detailed)](#read-operations-detailed)
+  - [findOne() - Advanced Usage](#findone---advanced-usage)
+  - [find() - Multiple Documents](#find---multiple-documents)
+- [Delete Operations](#delete-operations)
+  - [deleteOne()](#deleteone)
+  - [deleteMany()](#deletemany)
+- [Update Operations](#update-operations)
+  - [updateOne()](#updateone)
+  - [updateMany()](#updatemany)
+- [MongoDB Operators](#mongodb-operators)
+  - [Query Operators](#query-operators)
+  - [Update Operators](#update-operators)
+  - [Aggregation Operators](#aggregation-operators)
+  - [Projection Operators](#projection-operators)
+  - [Geospatial Operators](#geospatial-operators)
+
+---
+
+## MongoDB Shell Commands
+
+### Database Operations
+
+#### 1. List All Databases
+
+**Command:**
+
+```javascript
+show dbs
+// OR
+show databases
+```
+
+**Description**: Displays all databases in MongoDB server with their sizes.
+
+**Example Output:**
+
+```
+admin       40.00 KiB
+config      12.00 KiB
+local       40.00 KiB
+library    108.00 KiB
+school      72.00 KiB
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│         List Databases Command                     │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Command:  show dbs                                │
+│            show databases                          │
+│                                                    │
+│  Shows:    • Database names                        │
+│            • Database sizes                        │
+│            • Only non-empty databases              │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 2. Create or Switch Database
+
+**Command:**
+
+```javascript
+use database_name
+```
+
+**Behavior:**
+
+- If the database **exists**: Switches to that database
+- If the database **doesn't exist**: Creates a new database
+
+**Example:**
+
+```javascript
+use library
+// Output: switched to db library
+```
+
+**Important Notes:**
+
+- The new database won't appear in `show dbs` until you insert data into it
+- Empty databases are not saved permanently
+
+```
+┌────────────────────────────────────────────────────┐
+│         Create/Switch Database Flow                │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  use library                                       │
+│      │                                             │
+│      ├─→ Does "library" exist?                     │
+│      │                                             │
+│      ├─→ YES: Switch to library database           │
+│      │         (switched to db library)            │
+│      │                                             │
+│      └─→ NO:  Create new database "library"        │
+│                (switched to db library)            │
+│                                                    │
+│  Note: New database won't show in 'show dbs'       │
+│        until first collection/document is created  │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Shell Prompt Indicator:**
+
+```
+test>           ← Default database prompt
+library>        ← After "use library"
+school>         ← After "use school"
+```
+
+> **Note**: The shell prompt always shows the current active database. By default, it's set to `test` database.
+
+---
+
+#### 3. Refresh Compass Application
+
+**Important**: After performing operations in the shell, refresh MongoDB Compass to see changes.
+
+```
+┌────────────────────────────────────────────────────┐
+│         Shell ↔ Compass Synchronization            │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  1. Execute command in Shell                       │
+│     mongosh> db.students.insertOne({...})          │
+│                                                    │
+│  2. Refresh Compass to see changes                 │
+│     Click refresh button in Compass                │
+│                                                    │
+│  Why? Shell and Compass are separate interfaces    │
+│       Changes need manual refresh                  │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Collection Operations
+
+#### 3. Create Collection
+
+**Command:**
+
+```javascript
+db.createCollection("collection_name");
+```
+
+**What is `db`?**
+
+- `db` is an **object** representing the current database
+- It provides methods to interact with the database
+
+**Example:**
+
+```javascript
+db.createCollection("books");
+// Output:
+{
+  ok: 1;
+}
+```
+
+**Multiple Collections Example:**
+
+```javascript
+// Create school database with 3 collections
+use school
+
+db.createCollection("students")
+db.createCollection("teachers")
+db.createCollection("otherStaff")
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│         Database Object Structure                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  db                    ← Object (current database) │
+│   │                                                │
+│   ├─ createCollection()                            │
+│   ├─ dropDatabase()                                │
+│   ├─ getCollectionNames()                          │
+│   │                                                │
+│   └─ [collection_name]  ← Collection object        │
+│        │                                           │
+│        ├─ insertOne()                              │
+│        ├─ find()                                   │
+│        ├─ updateOne()                              │
+│        └─ deleteOne()                              │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 4. Display All Collections
+
+**Command:**
+
+```javascript
+show collections
+```
+
+**Description**: Lists all collections in the current database.
+
+**Example:**
+
+```javascript
+school> show collections
+students
+teachers
+otherStaff
+```
+
+---
+
+### Shell Shortcuts
+
+**Keyboard Shortcuts for Mongo Shell:**
+
+```
+┌────────────────────────────────────────────────────┐
+│         Mongo Shell Shortcuts                      │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  1. TAB                                            │
+│     • Auto-complete commands                       │
+│     • Show available methods                       │
+│     Example: db.[TAB] → shows all db methods       │
+│                                                    │
+│  2. ↑ / ↓ Arrow Keys                               │
+│     • Navigate through command history             │
+│     • ↑ = Previous command                         │
+│     • ↓ = Next command                             │
+│                                                    │
+│  3. cls  OR  Ctrl+L                                │
+│     • Clear the shell screen                       │
+│     • Commands: cls  or  Ctrl+L                    │
+│                                                    │
+│  4. Ctrl+C                                         │
+│     • Exit mongosh                                 │
+│     • Or type: .exit                               │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Practical Examples:**
+
+```javascript
+// 1. Auto-complete with TAB
+db.stu[TAB]          // Completes to: db.students
+db.students.find[TAB] // Shows: findOne(), find(), etc.
+
+// 2. Navigate history with arrow keys
+↑  // Previous command: db.students.find()
+↑  // Before that: use school
+↓  // Next command
+
+// 3. Clear screen
+cls                   // Clear screen
+// OR
+[Ctrl+L]             // Clear screen
+```
+
+---
+
+#### 5. Rename Collection
+
+**Command:**
+
+```javascript
+db.collection_name.renameCollection("new_collection_name");
+```
+
+**Example:**
+
+```javascript
+db.otherStaff.renameCollection("faculty");
+// Output:
+{
+  ok: 1;
+}
+```
+
+**Visual Workflow:**
+
+```
+┌────────────────────────────────────────────────────┐
+│         Rename Collection Process                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Before:                                           │
+│  school (database)                                 │
+│    ├─ students                                     │
+│    ├─ teachers                                     │
+│    └─ otherStaff     ← To be renamed               │
+│                                                    │
+│  Command:                                          │
+│  db.otherStaff.renameCollection("faculty")         │
+│                                                    │
+│  After:                                            │
+│  school (database)                                 │
+│    ├─ students                                     │
+│    ├─ teachers                                     │
+│    └─ faculty        ← Renamed                     │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+> **⚠️ Important**: In MongoDB, **renaming a database is NOT possible**. You must create a new database and migrate data manually.
+
+---
+
+#### 6. Delete Collection
+
+**Command:**
+
+```javascript
+db.collection_name.drop();
+```
+
+**Description**: Permanently deletes a collection and all its documents.
+
+**Example:**
+
+```javascript
+db.faculty.drop();
+// Output:
+true; // Successfully deleted
+```
+
+**Response Values:**
+
+- `true`: Collection was deleted successfully
+- `false`: Collection doesn't exist or deletion failed
+
+```
+┌────────────────────────────────────────────────────┐
+│         Delete Collection Warning                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ⚠️  WARNING: This operation is PERMANENT!         │
+│                                                    │
+│  db.faculty.drop()                                 │
+│      │                                             │
+│      ├─→ Deletes collection "faculty"              │
+│      ├─→ Deletes ALL documents inside              │
+│      └─→ Cannot be undone!                         │
+│                                                    │
+│  Before dropping:                                  │
+│  • Backup important data                           │
+│  • Confirm collection name                         │
+│  • Consider using deleteMany() instead             │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### 7. Delete Database
+
+**Command:**
+
+```javascript
+db.dropDatabase();
+```
+
+**Description**: Deletes the current database and all its collections.
+
+**Example:**
+
+```javascript
+use school
+db.dropDatabase()
+// Output:
+{ ok: 1, dropped: 'school' }
+```
+
+**Complete Workflow:**
+
+```javascript
+// Step 1: Switch to database you want to delete
+use school
+
+// Step 2: Drop the database
+db.dropDatabase()
+
+// Step 3: Verify deletion
+show dbs    // 'school' should not appear
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│         Delete Database Warning                    │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ⚠️  EXTREME WARNING: This operation is PERMANENT! │
+│                                                    │
+│  db.dropDatabase()                                 │
+│      │                                             │
+│      ├─→ Deletes ENTIRE current database           │
+│      ├─→ Deletes ALL collections                   │
+│      ├─→ Deletes ALL documents                     │
+│      └─→ Cannot be undone!                         │
+│                                                    │
+│  Safety Checklist:                                 │
+│  ☐ Confirm current database (check prompt)         │
+│  ☐ Backup all important data                       │
+│  ☐ Get approval if in production                   │
+│  ☐ Double-check database name                      │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## MongoDB Import Command
+
+### mongoimport - Bulk Data Import
+
+**Command Syntax:**
+
+```bash
+mongoimport "file_path" -d database_name -c collection_name --jsonArray
+```
+
+**Parameters:**
+
+- **file_path**: Full path to the JSON file
+- **-d**: Specifies the target database name
+- **-c**: Specifies the target collection name
+- **--jsonArray**: Flag indicating the file contains a JSON array
+
+**Example:**
+
+```bash
+mongoimport "C:\Users\ASUS\Desktop\Classes\emp.dept.json" -d demo23 -c coll1 --jsonArray
+```
+
+**Breakdown:**
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│         mongoimport Command Structure                            │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  mongoimport "C:\Users\ASUS\Desktop\Classes\emp.dept.json"      │
+│               └─────────────┬──────────────┘                     │
+│                        File Path                                 │
+│                                                                  │
+│  -d demo23                                                       │
+│   └───┬───┘                                                      │
+│    Database                                                      │
+│                                                                  │
+│  -c coll1                                                        │
+│   └───┬──┘                                                       │
+│   Collection                                                     │
+│                                                                  │
+│  --jsonArray                                                     │
+│  └─────┬─────┘                                                   │
+│    Format Flag                                                   │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+**File Format Requirements:**
+
+**For --jsonArray flag:**
+
+```json
+[
+  { "empName": "John", "sal": 5000, "job": "Manager" },
+  { "empName": "Jane", "sal": 4000, "job": "Developer" },
+  { "empName": "Bob", "sal": 3000, "job": "Clerk" }
+]
+```
+
+**Without --jsonArray flag:**
+
+```json
+{ "empName": "John", "sal": 5000, "job": "Manager" }
+{ "empName": "Jane", "sal": 4000, "job": "Developer" }
+{ "empName": "Bob", "sal": 3000, "job": "Clerk" }
+```
+
+**Success Output:**
+
+```
+2024-01-15T10:30:45.123+0000    connected to: mongodb://localhost/
+2024-01-15T10:30:45.234+0000    3 document(s) imported successfully. 0 document(s) failed to import.
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│         mongoimport Workflow                       │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Step 1: Prepare JSON file                        │
+│  ┌────────────────────────────────┐               │
+│  │ emp.dept.json                  │               │
+│  │ [                              │               │
+│  │   { "name": "...", ... },      │               │
+│  │   { "name": "...", ... }       │               │
+│  │ ]                              │               │
+│  └────────────────────────────────┘               │
+│                 ↓                                  │
+│                                                    │
+│  Step 2: Run mongoimport command                  │
+│  mongoimport "path" -d demo23 -c coll1 --jsonArray│
+│                 ↓                                  │
+│                                                    │
+│  Step 3: Data imported to MongoDB                 │
+│  ┌────────────────────────────────┐               │
+│  │ Database: demo23               │               │
+│  │  └─ Collection: coll1          │               │
+│  │      ├─ Document 1              │               │
+│  │      ├─ Document 2              │               │
+│  │      └─ Document 3              │               │
+│  └────────────────────────────────┘               │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Common Options:**
+
+| Option         | Description                         | Example                         |
+| -------------- | ----------------------------------- | ------------------------------- |
+| `--drop`       | Drop collection before importing    | `mongoimport ... --drop`        |
+| `--type`       | File type (json, csv, tsv)          | `mongoimport ... --type=csv`    |
+| `--headerline` | Use first line as field names (CSV) | `mongoimport ... --headerline`  |
+| `--mode`       | Insert mode (insert, upsert, merge) | `mongoimport ... --mode=upsert` |
+
+---
+
+## Read Operations (Detailed)
+
+### findOne() - Advanced Usage
+
+**Complete Syntax:**
+
+```javascript
+db.collection_name.findOne({ filter }, { projection }, { options });
+```
+
+#### Parameter Details
+
+**1. Filter Parameter**
+
+- **Purpose**: Conditions to match documents
+- **Type**: Query object
+- **Example**: `{ empName: "jones" }`
+
+**2. Projection Parameter**
+
+- **Purpose**: Select which fields to display or hide
+- **Type**: Projection object
+- **Syntax**: `{ fieldName: 1, fieldName: 0 }`
+- **Values**:
+  - `1` = Display/Include the field
+  - `0` = Hide/Exclude the field
+
+**Important Projection Rules:**
+
+```
+┌────────────────────────────────────────────────────┐
+│         Projection Rules                           │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Rule 1: _id field behavior                        │
+│  • Always displayed by default                     │
+│  • Must explicitly set to 0 to hide                │
+│  • Example: { name: 1, _id: 0 }                    │
+│                                                    │
+│  Rule 2: Inclusion vs Exclusion                    │
+│  • Cannot mix inclusion (1) and exclusion (0)      │
+│  • Exception: _id can be excluded in inclusion     │
+│                                                    │
+│  ✅ Valid:                                          │
+│     { name: 1, job: 1, _id: 0 }     // Inclusion   │
+│     { name: 0, job: 0 }             // Exclusion   │
+│                                                    │
+│  ❌ Invalid:                                        │
+│     { name: 1, job: 0 }             // Mixed       │
+│     Error: Cannot do exclusion in inclusion        │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### MongoDB Case Sensitivity
+
+> **⚠️ Important**: MongoDB commands are **case-sensitive**!
+
+```javascript
+// ✅ Correct
+db.emp.findOne();
+db.emp.insertOne();
+
+// ❌ Wrong
+db.emp.FindOne(); // Error: FindOne is not a function
+db.emp.FINDONE(); // Error: FINDONE is not a function
+```
+
+---
+
+### findOne() Examples
+
+#### Example 1: Find by Name
+
+**Question**: Find the details of employee whose name is "jones"
+
+```javascript
+db.emp.findOne({ empName: "jones" });
+```
+
+**Output:**
+
+```javascript
+{
+  _id: ObjectId("691d9c8f51082cb00173518a"),
+  empName: "jones",
+  job: "clerk",
+  sal: 3000,
+  deptNo: 20
+}
+```
+
+---
+
+#### Example 2: Empty Filter
+
+**Behavior**: Returns the **first document** in the collection
+
+```javascript
+// Both are equivalent
+db.emp.findOne({});
+db.emp.findOne();
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│         Empty Filter Behavior                      │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Collection: emp                                   │
+│  ┌─────────────────────────────────────────┐      │
+│  │ Document 1  ← RETURNED                  │      │
+│  │ Document 2                              │      │
+│  │ Document 3                              │      │
+│  │ Document 4                              │      │
+│  └─────────────────────────────────────────┘      │
+│                                                    │
+│  db.emp.findOne({})  → Returns Document 1         │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Example 3: Projection Usage
+
+**Question**: Display only the job and salary of employee whose name is "jones"
+
+```javascript
+db.emp.findOne(
+  { empName: "jones" }, // Filter
+  { sal: 1, job: 1, _id: 0 } // Projection
+);
+```
+
+**Output:**
+
+```javascript
+{
+  job: "clerk",
+  sal: 3000
+}
+```
+
+**Explanation:**
+
+- `sal: 1` → Include salary field
+- `job: 1` → Include job field
+- `_id: 0` → Exclude \_id field (otherwise shown by default)
+
+---
+
+#### Example 4: Projection Error
+
+**Invalid Projection (Mixed Inclusion/Exclusion):**
+
+```javascript
+db.emp.findOne(
+  { empName: "jones" },
+  { sal: 1, empName: 0 } // ❌ ERROR: Mixing 1 and 0
+);
+```
+
+**Error:**
+
+```
+MongoServerError: Cannot do exclusion on field empName in inclusion projection
+```
+
+**Why?** Cannot mix inclusion (1) and exclusion (0) in the same projection.
+
+---
+
+#### Example 5: Multiple Matches
+
+**Question**: Find employee with job "clerk"
+
+```javascript
+db.emp.findOne({ job: "clerk" });
+```
+
+**Behavior**: If there are multiple documents matching the condition, `findOne()` returns **only the first match**.
+
+```
+┌────────────────────────────────────────────────────┐
+│         findOne() with Multiple Matches            │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Collection: emp                                   │
+│  ┌─────────────────────────────────────────┐      │
+│  │ { empName: "john", job: "manager" }     │      │
+│  │ { empName: "jones", job: "clerk" } ← 1st│      │
+│  │ { empName: "smith", job: "clerk" }      │      │
+│  │ { empName: "bob", job: "clerk" }        │      │
+│  └─────────────────────────────────────────┘      │
+│                                                    │
+│  db.emp.findOne({ job: "clerk" })                 │
+│                                                    │
+│  Returns: { empName: "jones", job: "clerk" }      │
+│           (First matching document only)           │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### find() - Multiple Documents
+
+**Complete Syntax:**
+
+```javascript
+db.collection_name.find({ filter }, { projection }, { options });
+```
+
+**Key Difference from findOne():**
+
+- `findOne()`: Returns **one document** (first match)
+- `find()`: Returns **all matching documents** (cursor)
+
+#### find() Examples
+
+#### Example 1: Find Multiple Documents
+
+**Question**: Find all employees with job "clerk"
+
+```javascript
+db.emp.find({ job: "clerk" }, { empName: 1, _id: 0 });
+```
+
+**Output:**
+
+```javascript
+[{ empName: "jones" }, { empName: "smith" }, { empName: "bob" }];
+```
+
+---
+
+#### Example 2: Find All Documents
+
+**Behavior**: Returns **all documents** in the collection
+
+```javascript
+// Both are equivalent
+db.emp.find({});
+db.emp.find();
+```
+
+**Important Notes:**
+
+- No filter = Match all documents
+- Returns a cursor (iterable object)
+- Can iterate through results
+
+```
+┌────────────────────────────────────────────────────┐
+│         find() vs findOne() Comparison             │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  findOne({ job: "clerk" })                         │
+│  └─→ Returns: Single document (first match)        │
+│                                                    │
+│  find({ job: "clerk" })                            │
+│  └─→ Returns: Array/Cursor (all matches)           │
+│                                                    │
+│  Example Collection:                               │
+│  ┌────────────────────────────────────────┐       │
+│  │ { name: "A", job: "clerk" }  ← Match 1 │       │
+│  │ { name: "B", job: "manager" }          │       │
+│  │ { name: "C", job: "clerk" }  ← Match 2 │       │
+│  │ { name: "D", job: "clerk" }  ← Match 3 │       │
+│  └────────────────────────────────────────┘       │
+│                                                    │
+│  findOne() → Returns Match 1 only                  │
+│  find()    → Returns [Match 1, Match 2, Match 3]  │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## Delete Operations
+
+### deleteOne()
+
+**Syntax:**
+
+```javascript
+db.collection_name.deleteOne({ filter });
+```
+
+**Description**: Deletes the **first document** that matches the filter.
+
+#### deleteOne() Examples
+
+**Example 1: Delete Specific Document**
+
+```javascript
+db.demo.deleteOne({ name: "def" });
+```
+
+**Output:**
+
+```javascript
+{
+  acknowledged: true,
+  deletedCount: 1
+}
+```
+
+---
+
+**Example 2: Delete First Document**
+
+```javascript
+db.demo.deleteOne({}); // Empty filter
+```
+
+**Behavior**: Deletes the first document in the collection
+
+---
+
+**Example 3: Error - No Filter**
+
+```javascript
+db.demo.deleteOne(); // ❌ ERROR
+```
+
+**Error:**
+
+```
+MongoInvalidArgumentError: Method "deleteOne" requires a filter parameter
+```
+
+---
+
+### deleteMany()
+
+**Syntax:**
+
+```javascript
+db.collection_name.deleteMany({ filter });
+```
+
+**Description**: Deletes **all documents** that match the filter.
+
+#### deleteMany() Examples
+
+**Example 1: Delete Multiple Documents**
+
+```javascript
+db.demo.deleteMany({ name: "def" });
+```
+
+**Behavior**: Deletes all documents where `name` is "def"
+
+**Output:**
+
+```javascript
+{
+  acknowledged: true,
+  deletedCount: 5    // Number of deleted documents
+}
+```
+
+---
+
+**Example 2: Delete All Documents**
+
+```javascript
+db.demo.deleteMany({}); // Empty filter = Delete all
+```
+
+**⚠️ Warning**: This deletes **ALL documents** in the collection!
+
+**Output:**
+
+```javascript
+{
+  acknowledged: true,
+  deletedCount: 150   // Total documents deleted
+}
+```
+
+---
+
+**Example 3: Error - No Filter**
+
+```javascript
+db.demo.deleteMany(); // ❌ ERROR
+```
+
+**Error:**
+
+```
+MongoInvalidArgumentError: Method "deleteMany" requires a filter parameter
+```
+
+---
+
+### Delete Operations Comparison
+
+```
+┌────────────────────────────────────────────────────────────┐
+│         deleteOne() vs deleteMany() Comparison             │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  Method          │ Deletes        │ Filter Required       │
+│  ───────────────────────────────────────────────────────  │
+│  deleteOne()     │ First match    │ Optional ({})         │
+│  deleteMany()    │ All matches    │ Optional ({})         │
+│                                                            │
+│  Example Collection:                                       │
+│  ┌───────────────────────────────────────────────┐        │
+│  │ { name: "A", status: "inactive" }  ← Match 1  │        │
+│  │ { name: "B", status: "active" }               │        │
+│  │ { name: "C", status: "inactive" }  ← Match 2  │        │
+│  │ { name: "D", status: "inactive" }  ← Match 3  │        │
+│  └───────────────────────────────────────────────┘        │
+│                                                            │
+│  db.coll.deleteOne({ status: "inactive" })                │
+│  └─→ Deletes: Match 1 only                                │
+│                                                            │
+│  db.coll.deleteMany({ status: "inactive" })               │
+│  └─→ Deletes: Match 1, Match 2, Match 3                   │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Update Operations
+
+### updateOne()
+
+**Syntax:**
+
+```javascript
+db.collection_name.updateOne({ filter }, { updationValue }, { options });
+```
+
+**Parameters:**
+
+1. **filter**: Target document to update
+2. **updationValue**: New data to set (uses update operators)
+3. **options**: Additional options like `upsert` (TODO: will be covered later)
+
+**Description**: Updates the **first document** that matches the filter.
+
+---
+
+### updateMany()
+
+**Syntax:**
+
+```javascript
+db.collection_name.updateMany({ filter }, { updationValue }, { options });
+```
+
+**Description**: Updates **all documents** that match the filter.
+
+```
+┌────────────────────────────────────────────────────┐
+│         Update Operations Overview                 │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  updateOne({ filter }, { $set: {...} })            │
+│  └─→ Updates: First matching document              │
+│                                                    │
+│  updateMany({ filter }, { $set: {...} })           │
+│  └─→ Updates: All matching documents               │
+│                                                    │
+│  Example:                                          │
+│  ┌────────────────────────────────────────┐       │
+│  │ { name: "A", age: 25 }  ← Match        │       │
+│  │ { name: "B", age: 30 }                 │       │
+│  │ { name: "C", age: 25 }  ← Match        │       │
+│  └────────────────────────────────────────┘       │
+│                                                    │
+│  updateOne({ age: 25 }, { $set: { age: 26 } })    │
+│  → Updates first match only (A)                    │
+│                                                    │
+│  updateMany({ age: 25 }, { $set: { age: 26 } })   │
+│  → Updates all matches (A and C)                   │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+> **Note**: Update operators (like `$set`, `$inc`, etc.) will be covered in detail in the next section.
+
+---
+
+## MongoDB Operators
+
+**All MongoDB operators start with `$` (dollar sign)**
+
+```
+┌────────────────────────────────────────────────────────────┐
+│         MongoDB Operators Hierarchy                        │
+├────────────────────────────────────────────────────────────┤
+│                                                            │
+│  All Operators                                             │
+│  │                                                         │
+│  ├── Query Operators          (used in filter object)     │
+│  ├── Update Operators         (used in update operations) │
+│  ├── Aggregation Operators    (used in aggregation)       │
+│  ├── Projection Operators     (used in projection)        │
+│  └── Geospatial Operators     (used for location data)    │
+│                                                            │
+└────────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Query Operators
+
+**Purpose**: Used in the **filter object** to specify query conditions
+
+**Categories:**
+
+#### 1. Comparison Operators
+
+**Purpose**: Compare field values
+
+| Operator | Description           | Example                          |
+| -------- | --------------------- | -------------------------------- |
+| `$eq`    | Equal to              | `{ age: { $eq: 25 } }`           |
+| `$ne`    | Not equal to          | `{ age: { $ne: 25 } }`           |
+| `$gt`    | Greater than          | `{ age: { $gt: 25 } }`           |
+| `$gte`   | Greater than or equal | `{ age: { $gte: 25 } }`          |
+| `$lt`    | Less than             | `{ age: { $lt: 25 } }`           |
+| `$lte`   | Less than or equal    | `{ age: { $lte: 25 } }`          |
+| `$in`    | In array              | `{ age: { $in: [20, 25, 30] } }` |
+| `$nin`   | Not in array          | `{ age: { $nin: [20, 25] } }`    |
+
+**Example:**
+
+```javascript
+// Find employees with salary greater than 5000
+db.emp.find({ sal: { $gt: 5000 } });
+
+// Find employees with specific job titles
+db.emp.find({ job: { $in: ["manager", "clerk"] } });
+```
+
+---
+
+#### 2. Logical Operators
+
+**Purpose**: Combine multiple conditions
+
+| Operator | Description | Syntax                       |
+| -------- | ----------- | ---------------------------- |
+| `$and`   | Logical AND | `{ $and: [{...}, {...}] }`   |
+| `$or`    | Logical OR  | `{ $or: [{...}, {...}] }`    |
+| `$not`   | Logical NOT | `{ field: { $not: {...} } }` |
+| `$nor`   | Logical NOR | `{ $nor: [{...}, {...}] }`   |
+
+**Example:**
+
+```javascript
+// Find employees with salary > 5000 AND job is "manager"
+db.emp.find({
+  $and: [{ sal: { $gt: 5000 } }, { job: "manager" }],
+});
+
+// Find employees with job "manager" OR "clerk"
+db.emp.find({
+  $or: [{ job: "manager" }, { job: "clerk" }],
+});
+```
+
+---
+
+#### 3. Array Operators
+
+**Purpose**: Query array fields
+
+| Operator     | Description                    |
+| ------------ | ------------------------------ |
+| `$size`      | Match array size               |
+| `$all`       | Match all elements             |
+| `$elemMatch` | Match array element conditions |
+
+**Example:**
+
+```javascript
+// Find documents where hobbies array has exactly 3 elements
+db.users.find({ hobbies: { $size: 3 } });
+
+// Find documents where skills array contains both "Java" and "Python"
+db.users.find({ skills: { $all: ["Java", "Python"] } });
+```
+
+---
+
+#### 4. Element Operators
+
+**Purpose**: Query based on field existence and type
+
+| Operator  | Description           |
+| --------- | --------------------- |
+| `$exists` | Check if field exists |
+| `$type`   | Check field type      |
+
+**Example:**
+
+```javascript
+// Find documents where email field exists
+db.users.find({ email: { $exists: true } });
+
+// Find documents where age is a number
+db.users.find({ age: { $type: "number" } });
+```
+
+---
+
+#### 5. Evaluation Operators
+
+**Purpose**: Advanced query evaluation
+
+| Operator | Description                 |
+| -------- | --------------------------- |
+| `$regex` | Regular expression matching |
+| `$expr`  | Expression evaluation       |
+| `$text`  | Text search                 |
+| `$where` | JavaScript expression       |
+
+**Example:**
+
+```javascript
+// Find employees whose name starts with "j"
+db.emp.find({ empName: { $regex: /^j/i } });
+
+// Compare two fields in same document
+db.emp.find({ $expr: { $gt: ["$bonus", "$sal"] } });
+```
+
+---
+
+### Update Operators
+
+**Purpose**: Used in **update operations** to modify document data
+
+**Categories:**
+
+#### 1. Field Update Operators
+
+| Operator       | Description         | Example                                    |
+| -------------- | ------------------- | ------------------------------------------ |
+| `$set`         | Set field value     | `{ $set: { name: "John" } }`               |
+| `$unset`       | Remove field        | `{ $unset: { age: "" } }`                  |
+| `$rename`      | Rename field        | `{ $rename: { name: "fullName" } }`        |
+| `$currentDate` | Set to current date | `{ $currentDate: { lastModified: true } }` |
+
+**Example:**
+
+```javascript
+// Update employee salary
+db.emp.updateOne({ empName: "jones" }, { $set: { sal: 6000 } });
+
+// Remove email field
+db.emp.updateOne({ empName: "jones" }, { $unset: { email: "" } });
+```
+
+---
+
+#### 2. Arithmetic Update Operators
+
+| Operator | Description                    | Example                    |
+| -------- | ------------------------------ | -------------------------- |
+| `$inc`   | Increment by value             | `{ $inc: { age: 1 } }`     |
+| `$mul`   | Multiply by value              | `{ $mul: { price: 1.1 } }` |
+| `$min`   | Update if less than current    | `{ $min: { score: 50 } }`  |
+| `$max`   | Update if greater than current | `{ $max: { score: 100 } }` |
+
+**Example:**
+
+```javascript
+// Increment salary by 500
+db.emp.updateOne({ empName: "jones" }, { $inc: { sal: 500 } });
+
+// Multiply price by 1.1 (10% increase)
+db.products.updateMany({}, { $mul: { price: 1.1 } });
+```
+
+---
+
+#### 3. Array Update Operators
+
+| Operator    | Description               | Example                             |
+| ----------- | ------------------------- | ----------------------------------- |
+| `$push`     | Add element to array      | `{ $push: { hobbies: "reading" } }` |
+| `$pull`     | Remove element from array | `{ $pull: { hobbies: "gaming" } }`  |
+| `$pop`      | Remove first/last element | `{ $pop: { hobbies: 1 } }`          |
+| `$addToSet` | Add unique element        | `{ $addToSet: { tags: "new" } }`    |
+
+**Example:**
+
+```javascript
+// Add new skill to skills array
+db.users.updateOne({ name: "John" }, { $push: { skills: "MongoDB" } });
+
+// Remove specific hobby
+db.users.updateOne({ name: "John" }, { $pull: { hobbies: "gaming" } });
+```
+
+---
+
+### Aggregation Operators
+
+**Purpose**: Used in **aggregation pipeline** for data transformation
+
+**Categories:**
+
+#### 1. Pipeline Stage Operators
+
+| Operator   | Description        |
+| ---------- | ------------------ |
+| `$match`   | Filter documents   |
+| `$group`   | Group documents    |
+| `$sort`    | Sort documents     |
+| `$project` | Reshape documents  |
+| `$limit`   | Limit results      |
+| `$skip`    | Skip documents     |
+| `$lookup`  | Join collections   |
+| `$unwind`  | Deconstruct arrays |
+
+**Example:**
+
+```javascript
+db.emp.aggregate([
+  { $match: { job: "clerk" } }, // Filter
+  { $group: { _id: "$deptNo", total: { $sum: "$sal" } } }, // Group
+  { $sort: { total: -1 } }, // Sort
+]);
+```
+
+---
+
+#### 2. Accumulator Operators
+
+| Operator | Description             |
+| -------- | ----------------------- |
+| `$sum`   | Calculate sum           |
+| `$avg`   | Calculate average       |
+| `$max`   | Find maximum            |
+| `$min`   | Find minimum            |
+| `$count` | Count documents         |
+| `$push`  | Collect values in array |
+| `$first` | Get first value         |
+| `$last`  | Get last value          |
+
+---
+
+#### 3. Arithmetic and Date Operators
+
+| Operator      | Description             |
+| ------------- | ----------------------- |
+| `$add`        | Add numbers/dates       |
+| `$subtract`   | Subtract numbers/dates  |
+| `$multiply`   | Multiply numbers        |
+| `$divide`     | Divide numbers          |
+| `$year`       | Extract year from date  |
+| `$month`      | Extract month from date |
+| `$dayOfMonth` | Extract day from date   |
+
+---
+
+### Projection Operators
+
+**Purpose**: Control which parts of documents/arrays to return
+
+| Operator     | Description                  | Example                                   |
+| ------------ | ---------------------------- | ----------------------------------------- |
+| `$`          | Array element matching query | `{ "comments.$": 1 }`                     |
+| `$slice`     | Limit array elements         | `{ comments: { $slice: 5 } }`             |
+| `$elemMatch` | Match array element          | `{ scores: { $elemMatch: { $gt: 80 } } }` |
+
+**Example:**
+
+```javascript
+// Return only first 3 comments
+db.posts.find({}, { comments: { $slice: 3 } });
+
+// Return specific array element
+db.posts.find({ "comments.user": "John" }, { "comments.$": 1 });
+```
+
+---
+
+### Geospatial Operators
+
+**Purpose**: Query location-based data using **GeoJSON format**
+
+| Operator         | Description         |
+| ---------------- | ------------------- |
+| `$near`          | Find near location  |
+| `$geoWithin`     | Within boundary     |
+| `$geoIntersects` | Intersects geometry |
+| `$nearSphere`    | Near on sphere      |
+
+**GeoJSON Format:**
+
+```javascript
+{
+  location: {
+    type: "Point",
+    coordinates: [longitude, latitude]
+  }
+}
+```
+
+**Example:**
+
+```javascript
+// Find locations near a point
+db.places.find({
+  location: {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [-73.9667, 40.78],
+      },
+      $maxDistance: 5000, // meters
+    },
+  },
+});
+```
+
+---
+
+## Operators Summary
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│         MongoDB Operators - Complete Hierarchy                   │
+├──────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  1. Query Operators (Filter/Find)                                │
+│     ├─ Comparison: $eq, $ne, $gt, $lt, $in, $nin                │
+│     ├─ Logical: $and, $or, $not, $nor                           │
+│     ├─ Array: $size, $all, $elemMatch                           │
+│     ├─ Element: $exists, $type                                  │
+│     └─ Evaluation: $regex, $expr, $text, $where                 │
+│                                                                  │
+│  2. Update Operators (Modify)                                    │
+│     ├─ Field: $set, $unset, $rename, $currentDate               │
+│     ├─ Arithmetic: $inc, $mul, $min, $max                       │
+│     └─ Array: $push, $pull, $pop, $addToSet                     │
+│                                                                  │
+│  3. Aggregation Operators (Transform)                            │
+│     ├─ Pipeline: $match, $group, $sort, $project                │
+│     ├─ Accumulator: $sum, $avg, $max, $min, $count              │
+│     └─ Arithmetic/Date: $add, $subtract, $year, $month          │
+│                                                                  │
+│  4. Projection Operators (Select)                                │
+│     └─ $, $slice, $elemMatch                                    │
+│                                                                  │
+│  5. Geospatial Operators (Location)                              │
+│     └─ $near, $geoWithin, $geoIntersects (GeoJSON)              │
+│                                                                  │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Quick Reference
+
+### Essential Commands Cheat Sheet
+
+```javascript
+// DATABASE COMMANDS
+show dbs                          // List databases
+use db_name                       // Create/switch database
+db.dropDatabase()                 // Delete current database
+
+// COLLECTION COMMANDS
+show collections                  // List collections
+db.createCollection("name")       // Create collection
+db.coll.renameCollection("new")   // Rename collection
+db.coll.drop()                    // Delete collection
+
+// CRUD OPERATIONS
+db.coll.insertOne({...})          // Insert single document
+db.coll.insertMany([{...}])       // Insert multiple documents
+db.coll.findOne({filter}, {proj}) // Find single document
+db.coll.find({filter}, {proj})    // Find multiple documents
+db.coll.updateOne({filter}, {$set:{...}})   // Update single
+db.coll.updateMany({filter}, {$set:{...}})  // Update multiple
+db.coll.deleteOne({filter})       // Delete single document
+db.coll.deleteMany({filter})      // Delete multiple documents
+
+// IMPORT DATA
+mongoimport "path" -d db_name -c coll_name --jsonArray
+```
+
+---
+
+## Summary
+
+### Key Takeaways:
+
+1. **Shell Commands**:
+
+   - `show dbs` - List databases
+   - `use db_name` - Create/switch database
+   - `show collections` - List collections
+   - Shell shortcuts: TAB, ↑↓, cls, Ctrl+L
+
+2. **Collection Operations**:
+
+   - `createCollection()` - Create new collection
+   - `renameCollection()` - Rename collection
+   - `drop()` - Delete collection
+   - `dropDatabase()` - Delete database
+
+3. **mongoimport**:
+
+   - Bulk import JSON data
+   - Syntax: `mongoimport "path" -d db -c coll --jsonArray`
+
+4. **Read Operations**:
+
+   - `findOne()` - Find first matching document
+   - `find()` - Find all matching documents
+   - Projection: `1` = include, `0` = exclude
+   - Cannot mix inclusion and exclusion
+
+5. **Delete Operations**:
+
+   - `deleteOne()` - Delete first match
+   - `deleteMany()` - Delete all matches
+   - Empty filter deletes all documents
+
+6. **Update Operations**:
+
+   - `updateOne()` - Update first match
+   - `updateMany()` - Update all matches
+   - Uses update operators like `$set`
+
+7. **MongoDB Operators**:
+   - All start with `$`
+   - Query operators: Filter conditions
+   - Update operators: Modify data
+   - Aggregation operators: Transform data
+   - Projection operators: Select fields
+   - Geospatial operators: Location data
+
+---
+
 ## Glossary
 
 | Term                | Definition                                                                 |

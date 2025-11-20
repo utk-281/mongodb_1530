@@ -199,6 +199,80 @@ db.teachers.insertMany([
 //! parameters are used when a function is declared
 //~ arguments are passed while calling a function
 
+//& mongoimport command
+//? mongoimport "path" -d db_name -c coll_name --jsonArray
+//? mongoimport "C:\Users\ASUS\Desktop\Classes\emp.dept.json" -d demo23 -c coll1 --jsonArray
+
 //~ 10) to get/fetch/read single document --> findOne()
 db.collection_name.findOne({ filter }, { projection }, { options });
 //? filter --> conditions on which the document needs to be fetched
+//? projection --> it is used to display/hide the fields of selected document. _id will be automatically set to display whenever we use projection, if we want to hide it use _id:0
+//~ projection part == { fieldName: 1, fieldName: 0  }
+//~ 1 to display and 0 to hide
+
+//& --> mongodb commands are case-sensitive
+
+//! ques>> find the details of emp whose name is "jones"
+db.emp.findOne({ empName: "jones" });
+
+//? passing empty filter object --> first document will be fetched
+db.emp.findOne({});
+db.emp.findOne();
+
+//! ques>> display the job and salary of emp whose name is "jones"
+db.emp.findOne({ empName: "jones" }, { sal: 1, _id: 0, job: 1 });
+
+db.emp.findOne({ empName: "jones" }, { sal: 1, empName: 0 });
+//?  Cannot do exclusion on field empName in inclusion projection --> this will give error
+
+db.emp.findOne({ job: "clerk" }); //? if there are multiple documents which are fulfilling the passed condition, then findOne() will return the first document which matches the conditions
+
+//~ 11) to get/fetch/read multiple documents --> find()
+db.collection_name.find({ filter }, { projection }, { options });
+//? in find(), all the documents are returned which are fulfilling the conditions
+
+db.emp.find({ job: "clerk" }, { empName: 1, _id: 0 });
+
+//! if no conditions are passed, then all the documents are fetched.
+db.emp.find({});
+db.emp.find();
+
+//~ 12) to delete a single document --> deleteOne()
+db.collection_name.deleteOne({ filter });
+
+db.demo.deleteOne({ name: "def" });
+db.demo.deleteOne({}); //? this will delete the first matched document
+db.demo.deleteOne(); //? this will throw an error
+
+//~ 13) to delete multiple documents --> deleteMany()
+
+db.demo.deleteMany({ name: "def" }); //? this will delete all the documents in which name is "def"
+db.demo.deleteMany({}); //? this will delete all the documents
+db.demo.deleteMany(); //? this will throw an error
+
+//~ 14) to update single document --> updateOne()
+db.collection_name.updateOne({ filter }, { updationValue }, { options });
+//? filter --> to target the document
+//? updationValue --> to give new data
+//? options --> upsert (todo)
+
+//~ 14) to update multiple documents --> updateMany()
+db.collection_name.updateMany({ filter }, { updationValue }, { options });
+
+//! Operators ==> all operators in mongodb starts with "$"
+//~ query operators: used in filter object
+//? ==> comparison operators (less than, not equals to, etc.)
+//? ==> logical operators (logical AND, logical OR, etc..)
+//? ==> array operators (size, all, elemMatch, etc..)
+//? ==> element operators (exists, type, etc..)
+//? ==> evaluation operators (regex, expr, etc..)
+//~ update operators
+//? ==> field update op (set, unset, etc..)
+//? ==> arithmetic update op (max, min, inc, etc..)
+//? ==> array update op (push, pull, etc..)
+//~ aggregation operators
+//? ==> pipeline stages op (match, group, etc..)
+//? ==> accumulator op (max, min, avg, count, sum)
+//? ==> arithmetic and date op (add, subtract, date, etc..)
+//~ projection operators ($, $slice, etc..)
+//~ geospatial operators ==> (GeoJSON format)
