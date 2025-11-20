@@ -5278,7 +5278,7 @@ mongoimport "path" -d db_name -c coll_name --jsonArray
 ---
 
 **Last Updated**: 2024
-**Version**: 1.1 (Added MongoDB Deep Dive)
+**Version**: 1.4 (Added Intro To Operators)
 **Author**: Utkarsh
 
 ---
