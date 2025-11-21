@@ -276,3 +276,114 @@ db.collection_name.updateMany({ filter }, { updationValue }, { options });
 //? ==> arithmetic and date op (add, subtract, date, etc..)
 //~ projection operators ($, $slice, etc..)
 //~ geospatial operators ==> (GeoJSON format)
+
+//! ============================ Comparison operators =============================
+//? equals to ----------------------------------------> $eq
+//? not equals to ------------------------------------> $ne
+//? greater than -------------------------------------> $gt
+//? greater than or equals to ------------------------> $gte
+//? lesser than --------------------------------------> $lt
+//? lesser than or equals to -------------------------> $lte
+//? in -----------------------------------------------> $in
+//? not in -------------------------------------------> $nin
+
+//~ syntax for first 6 operators
+//? { fieldName: { $op: value } }
+
+//~ syntax for $in and $nin --> ($in:= it returns the documents which fulfills any one of the given value)
+//~ ($nin:= it returns the documents which fails to fulfill the given values)
+//? { fieldName: { $in/$nin: [value1, v2, v3,......] } }
+
+//! ques>> find all the employees who are having salary greater than 1000
+db.emp.find({ sal: { $gt: 1000 } });
+
+//! ques>> find all the employees who are working as clerk.
+db.emp.find({ job: { $eq: "clerk" } }, { empName: 1, _id: 0 });
+db.emp.find({ job: "clerk" }, { empName: 1, _id: 0 });
+
+//& --> case1) when multiple conditions are applied on same field: the last condition will get executed
+//! ques>> find all the names of employees from dept 10 or 20
+db.emp.find(
+  { deptNo: 20, deptNo: 10, deptNo: 30, deptNo: 40 },
+  { empName: 1, _id: 0, deptNo: 1 }
+); //? this will return the documents whose deptNo is 40
+
+db.emp.find({ deptNo: { $in: [10, 20] } }, { empName: 1, _id: 0, deptNo: 1 });
+//& --> case2) when multiple conditions are applied on different fields: works as LOGICAL AND (all the conditions must be fulfilled)
+db.emp.find(
+  { sal: { $gt: 1400 }, job: "clerk", sal: 1200 },
+  { sal: 1, job: 1, _id: 0 }
+);
+//? this will return the documents who are clerk and are having salary greater than 1400
+
+/* 
+! Find employees with sal greater than 2000.
+
+! Find departments with budget less than or equal to 150000.
+
+! Query employees whose city equals "Chicago".
+
+! Find employees whose education is not "bachelor".
+
+! Find employees whose deptNo is in [10, 30].
+
+! Find employees whose empNo is not in [7369, 7499].
+
+! Query employees with bonus >= 1000 and sal < 3000. (not this)
+
+! Find employees where mgr field is null.
+
+! Find departments where headOfDept exists (non-null). (not this)
+
+! Query employees whose age is between 25 and 40 (inclusive). (not this)
+*/
+
+//? Find employees whose education is not "bachelor".
+db.emp.find(
+  { education: { $ne: "Bachelor" } },
+  { education: 1, _id: 0 },
+  { collation: { locale: "en", strength: 2 } } //? to avoid case sensitivity
+);
+//~ locale --> language
+//~ strength:2 --> uppercase===lowercase but accent in-sensitive
+db.emp.find({ education: { $nin: ["bachelor"] } }, { education: 1, _id: 0 });
+
+//? ! Find employees where mgr field is null.
+db.emp.find({ mgr: null }, { mgr: 1, _id: 0, empName: 1 });
+
+//! ============================ Logical operators =============================
+//? logical and -----------------------------------> $and
+//? logical or ------------------------------------> $or
+//? logical nor -----------------------------------> $nor
+//? logical not -----------------------------------> $not
+
+//? syntax for $and, $or, $nor
+//? { $op: [{}, {}, {}, ........] }
+
+//! Query employees with sal >= 1100 and sal < 2000. (not this)
+db.emp.find(
+  {
+    $and: [
+      { sal: { $gte: 1100 } }, // con1
+      { sal: { $lt: 2000 } }, // con2
+    ],
+  },
+  {
+    sal: 1,
+    _id: 0,
+  }
+);
+
+//! ques>> find all the names of employees from dept 10 or 20
+db.emp.find(
+  {
+    $or: [
+      { deptNo: 10 }, // con1
+      { deptNo: 20 }, // con2
+    ],
+  },
+  {
+    deptNo: 1,
+    _id: 0,
+  }
+);
