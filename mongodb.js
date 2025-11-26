@@ -183,8 +183,8 @@ let resp = {
 
 let str = "691d9c8f51082cb00173518a";
 //? this objectId is divided into three major parts
-//~ first 5 bytes --> "691d9c8f51": it represent the timestamp.
-//~ next 4 bytes --> "082cb001": PUI(process unique identifier) is a combination of process ID and machine ID.
+//~ first 4 bytes --> "691d9c8f51": it represent the timestamp.
+//~ next 5 bytes --> "082cb001": PUI(process unique identifier) is a combination of process ID and machine ID.
 //~ last 3 bytes --> "73518a": it starts with a random value and is incremented each time by one when a new document is inserted. (counter)
 
 // objectId is of 96 bits (24) 4
@@ -387,3 +387,121 @@ db.emp.find(
     _id: 0,
   }
 );
+
+db.emp.find({ deptNo: { $in: [10, 20] } });
+
+//~ working of $nor --> it will fetch all the documents which fails to fulfill the given conditions
+db.emp.find(
+  {
+    $nor: [
+      { deptNo: 10 }, // con1
+      { deptNo: 20 }, // con2
+    ],
+  },
+  {
+    deptNo: 1,
+    _id: 0,
+  }
+);
+
+//? syntax for $not ==> logical not will inverse the given condition (example: if passed $gt:1200, inverse condition will be $lte:1200)
+//? { fieldName: {$not: { expression }} }
+
+// expression --> x>=8 inverse x<8
+// expression --> x>8 inverse x<=8
+// expression --> y=="abc" inverse y!= "abc"
+
+db.emp.find({ job: { $not: { $eq: "clerk" } } }, { job: 1, _id: 0 });
+
+db.emp.find({ sal: { $not: { $lte: 1250 } } }, { sal: 1, _id: 0 });
+//? gt 1251
+
+//! get all the names and date of joining who have joined after 1985
+//? {fieldName:ISODate("YYYY-MM-DD")}
+db.emp.find(
+  { hireDate: { $gt: ISODate("1985-12-31") } },
+  { hireDate: 1, _id: 0, empName: 1 }
+);
+
+db.emp.find(
+  { hireDate: { $gt: "1985-12-31" } },
+  { hireDate: 1, _id: 0, empName: 1 }
+); //? in this case it will not work
+
+db.emp.find(
+  { hireDate: { $gte: ISODate("1986-01-01") } },
+  { hireDate: 1, _id: 0, empName: 1 }
+);
+
+//~ fetching based on _id ==> { _id: ObjectId("66a23517b5c6990483c4e49b") }
+
+//! find the details of user whose unique is 66a23517b5c6990483c4e49b
+db.emp.findOne({ _id: ObjectId("66a23517b5c6990483c4e49b") });
+
+//~ if we want to access nested properties, use double quotes
+//! display rating and empName of emp who have rating greater than 3.9
+db.emp.find(
+  { "performance.rating": { $gt: 4.2 } },
+  { empName: 1, _id: 0, "performance.rating": 1 }
+);
+// db.emp.find({ performance[rating]: { $gt: 3.9 } }, { empName: 1, _id: 0 });
+
+//! fetch all the emp names and skills who are having sql as one of the skill
+db.emp.find({ skills: "sql" }, { empName: 1, skills: 1, _id: 0 });
+
+//! fetch all the emp names and skills who are having sql and excel as one of the skill
+db.emp.find({ skills: ["excel", "sql"] }, { empName: 1, skills: 1, _id: 0 });
+//~ this will not work, until we don't know the order of the elements
+db.emp.find(
+  {
+    $and: [
+      // con1
+      { skills: "excel" }, // con2,
+      { skills: "sql" },
+    ],
+  },
+  { empName: 1, skills: 1, _id: 0 }
+);
+
+/* 
+Q: Write a query to find the details of employee with empNo: 7839 using findOne().
+Q: What are the three parameters of findOne()? Which ones are optional?
+Q: Write a query to find one employee from department 30.
+Q: Find one employee whose job is "manager".
+Q: Write a query to find any one document from the emp collection (no filter).
+Q: Find one employee and return only their empName and job fields (exclude _id).
+Q: What does findOne() return if no document matches the filter?
+Q: Find one employee with sal greater than 3000.
+Q: Find one employee who works in "Chicago" city.
+Q: Write a query to find one employee whose empName is "king" and return only empName, job, and sal.
+Q: Find one document from dept collection where deptNo is 20.
+Q: What is the difference between findOne() and find()?
+Q: Find one employee whose age is less than 30.
+Q: Write a query to find one employee with commission (comm) equal to 0.
+Q: Find one employee who has "python" in their skills array.
+Q: Find the department located in "dallas" (case-sensitive).
+Q: Write a query to find one employee with salary between 2000 and 3000.
+Q: Find one employee whose manager (mgr) is 7698.
+Q: In projection, what does 1 mean and what does 0 mean?
+Q: Find one employee who works in department 20 AND has a salary greater than 2000, returning only empName, sal, and deptNo.
+Q: Write a query to find one employee whose performance rating is greater than 4.5 (nested field).
+Q: Find one employee from the emp collection who either works in department 10 OR has a job as "analyst".
+Q: Write a query to find one employee who does NOT have insurance (havingInsurance: false).
+Q: Find one employee whose salary is in the array [1100, 1250, 1500].
+Q: Write a query to find one employee who has both "html" and "python" in their skills array.
+Q: Find one remote employee (isRemote: true) who works in department 20.
+Q: Write a query to find one employee whose age is NOT equal to 25.
+Q: Find one employee whose empName starts with "m" (you'll need to research regex).
+Q: Write a query to find the department with exactly 0 employees.
+Q: Find one employee with a performance rating less than or equal to 4.0 and return only their empName and performance object.
+Q: Write a query to find one employee whose education is "master" and job is "manager".
+Q: Find one employee who was hired after January 1, 1982 (hireDate comparison).
+Q: Write a query to find one employee whose projects array contains "project_alpha".
+Q: Find one employee who has a bonus greater than 1000 but no commission (comm: 0).
+Q: Write a query to find one department that is NOT active (isActive: false).
+Q: Find one employee whose city is either "Noida" or "Pune".
+Q: Write a query to find one employee with totalHoursWorked greater than 2000.
+Q: Find one employee whose lastReviewDate (nested in performance) is in 2024.
+Q: Write a query to find one employee whose empNo is greater than 7800 and return all fields except _id and skills.
+
+*/
