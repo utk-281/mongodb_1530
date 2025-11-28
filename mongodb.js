@@ -433,6 +433,22 @@ db.emp.find(
   { hireDate: 1, _id: 0, empName: 1 }
 );
 
+//! get all the names and date of joining who have joined in month of jan
+db.emp.find(
+  {
+    $expr: { $eq: [{ $month: "$hireDate" }, 1] },
+  },
+  { empName: 1, hireDate: 1, _id: 0 }
+);
+db.emp.find(
+  {
+    $expr: {
+      $in: [{ $dayOfWeek: "$hireDate" }, [1, 7]],
+    },
+  },
+  { empName: 1, hireDate: 1, _id: 0 }
+);
+
 //~ fetching based on _id ==> { _id: ObjectId("66a23517b5c6990483c4e49b") }
 
 //! find the details of user whose unique is 66a23517b5c6990483c4e49b
@@ -505,3 +521,251 @@ Q: Find one employee whose lastReviewDate (nested in performance) is in 2024.
 Q: Write a query to find one employee whose empNo is greater than 7800 and return all fields except _id and skills.
 
 */
+
+//~ ============================ array operators =================================
+//? $all --> it fetches the documents which matches all the given conditions
+//! syntax --> { fieldName: { $all: [v1, v2, v3,.......] } }
+
+//? $size --> it fetches the documents which matches the given size
+//! syntax --> { fieldName: {$size: +INTEGER} }
+
+//? $elemMatch (element match): it fetches the documents in which the elements matches the given conditions
+//! syntax --> { fieldName: { $elemMatch: {conditions} } }
+
+//! fetch all the emp names and skills who are having sql and excel as one of the skill
+db.emp.find(
+  { skills: { $all: ["excel", "sql"] } },
+  { empName: 1, skills: 1, _id: 0 }
+);
+
+//! display the name and skills of emp who are having only 4 skills
+db.emp.find({ skills: { $size: 4 } }, { empName: 1, skills: 1, _id: 0 });
+
+db.dummy2.insertMany([
+  {
+    _id: 1,
+    results: [
+      { product: "abc", score: 10 },
+      { product: "xyz", score: 5 },
+      { product: "pqr", score: 6 },
+    ],
+  },
+  {
+    _id: 2,
+    results: [
+      { product: "abc", score: 8 },
+      { product: "xyz", score: 7 },
+      { product: "def", score: 4 },
+    ],
+  },
+  {
+    _id: 3,
+    results: [
+      { product: "abc", score: 7 },
+      { product: "xyz", score: 8 },
+      { product: "def", score: 9 },
+    ],
+  },
+]);
+
+//& find all the documents in which product pqr is present
+db.dummy2.find({ results: { $elemMatch: { product: "pqr" } } }, { _id: 0 });
+
+//& find all the documents in which product def is present and score should be greater than 5
+db.dummy2.find({
+  results: { $elemMatch: { product: "def", score: { $gt: 5 } } },
+});
+
+// db.employees.find(
+//   { dependents: { $elemMatch: { relation: "Son" } } },
+//   { dependents: 1 }
+// );
+
+//& find all the emp details who are having skills as either sql or react(if sql is preset-->print or if react is present-->print)
+db.emp.find({ skills: { $in: ["sql", "react"] } }, { skills: 1, _id: 0 });
+
+//~ ================= element operators =============================================================
+
+//? $type --> it fetches all the documents which matches the given type
+//& syntax --> { fieldName: { $type: "alias" } }
+// alias -> "string", "number", "bool", "array", etc..
+db.emp.find({ sal: { $type: "string" } });
+
+//? $exists --> it fetches the documents which matches the given fieldName
+//& filter part --> {fieldName: {$exists: true/false}}
+// if set to true --> fetches the documents which contains the fieldName
+// if set to false --> fetches the documents which does not contain the fieldName
+db.emp.find(
+  { isMarried: { $exists: false } },
+  { empName: 1, isMarried: 1, _id: 0 }
+);
+
+//~ ================================== evaluation op =================================
+//? $regex --> it fetches the documents which matches the given pattern. this only works on string
+//& filter part == { fieldName: { $regex: /pattern/ } }
+//? regular expression --> regex
+
+//? $expr (expression) --> it helps us to compare between two fields of a single document, also it allows us to write aggregation queries
+
+//! Find all employees whose empName contains letter "m" (pattern matching)
+db.emp.find({ empName: { $regex: /m/ } }, { empName: 1, _id: 0 });
+
+//~ cap symbol (^: shift+ 6) --> using this we can compare the starting of the string
+//~ dollar symbol ($: shift+4) --> using this we can compare the end of the string
+//~ dot symbol (.) --> using dot we can skip one character
+
+//! Find all employees whose empName contains first letter "m" (pattern matching)
+db.emp.find({ empName: { $regex: /^m/ } }, { empName: 1, _id: 0 });
+
+//! Find all employees whose empName last letter is "s" (pattern matching)
+db.emp.find({ empName: { $regex: /s$/ } }, { empName: 1, _id: 0 });
+
+//! Find all employees whose second letter is "o" (pattern matching)
+db.emp.find({ empName: { $regex: /^.o/ } }, { empName: 1, _id: 0 });
+
+//! Find all employees whose third last letter is "l" (pattern matching)
+db.emp.find({ empName: { $regex: /l..$/ } }, { empName: 1, _id: 0 });
+
+//! find all emp who are having exactly 4 letters in their name
+db.emp.find({ empName: { $regex: /^....$/ } }, { empName: 1, _id: 0 });
+
+// ============================================
+// MONGODB OPERATORS PRACTICE QUESTIONS
+// Collections: emp.dept & emp.emp
+// ============================================
+
+// ============================================
+// ARRAY OPERATORS ($size, $all, $elemMatch, $in, $nin)
+// ============================================
+
+// 1. Find all employees who have exactly 3 skills
+
+// 2. Find all employees who have exactly 4 skills
+
+// 3. Find all employees who have more than 2 skills (use $expr with $size)
+
+// 4. Find all employees who have both "sql" and "python" skills
+
+// 5. Find all employees who have both "html" and "java" skills
+
+// 6. Find all employees working on both "project_alpha" and "research_initiative"
+
+// 7. Find departments that have both "conference_room" and "printer" facilities
+
+// 8. Find departments with exactly 2 facilities
+
+// 9. Find departments with exactly 3 facilities
+
+// 10. Find employees whose job is either "manager" or "analyst"
+
+// 11. Find employees from cities: "Chicago", "Dallas", or "New York"
+
+// 12. Find employees with education level "master", "phd", or "mba"
+
+// 13. Find departments NOT located in "boston" or "chicago"
+
+// 14. Find employees whose job is NOT "clerk" or "salesman"
+
+// 15. Find employees who have skills in "java", "python", or "c++"
+
+// 16. Find all employees who do NOT have "sql" in their skills array
+
+// 17. Find employees working on exactly 1 project
+
+// 18. Find employees working on exactly 2 projects
+
+// 19. Find employees with performance rating greater than 4.0 (use $elemMatch concept with embedded doc)
+
+// 20. Find all employees who have "leadership" OR "management" in their skills
+
+// ============================================
+// ELEMENT OPERATORS ($exists, $type)
+// ============================================
+
+// 21. Find all employees who have an "incentive" field
+
+// 22. Find all employees who do NOT have an "incentive" field
+
+// 23. Find all departments where "headOfDept" field exists
+
+// 24. Find all departments where "headOfDept" is null
+
+// 25. Find employees where "mgr" field exists and is not null
+
+// 26. Find employees where "comm" is 0 (commission is zero)
+
+// 27. Find employees where "havingInsurance" field exists
+
+// 28. Find employees where "havingInsurance" does not exist
+
+// 29. Find all employees where "skills" is an array type
+
+// 30. Find all employees where "age" is a number type
+
+// 31. Find departments where "budget" exists
+
+// 32. Find employees where "totalHoursWorked" exists and is greater than 2000
+
+// 33. Find all employees who have a "city" field
+
+// 34. Find departments where "isActive" field exists
+
+// 35. Find employees where "bonus" field exists and is greater than 1000
+
+// ============================================
+// EVALUATION OPERATORS ($regex, $expr, $mod, $where)
+// ============================================
+
+// 36. Find all employees whose name starts with "m" (case insensitive)
+
+// 37. Find all employees whose name ends with "n" (case insensitive)
+
+// 38. Find all employees whose name contains "ar" (case insensitive)
+
+// 39. Find departments whose name contains "sales" (case insensitive)
+
+// 40. Find departments whose location starts with "new" (case insensitive)
+
+// 41. Find employees whose city name ends with "go" (Chicago)
+
+// 42. Find employees where salary is greater than bonus (use $expr)
+
+// 43. Find employees where totalHoursWorked is greater than 2000 (use $expr)
+
+// 44. Find departments where budget is greater than 150000 (use $expr)
+
+// 45. Find employees where (sal + bonus) is greater than 3000 (use $expr)
+
+// 46. Find employees where comm is greater than bonus (use $expr)
+
+// 47. Find employees whose empNo is divisible by 2 (use $mod)
+
+// 48. Find departments whose deptNo is divisible by 10 (use $mod)
+
+// 49. Find employees where age multiplied by 100 is less than salary (use $expr)
+
+// 50. Find all employees whose job title contains "man" (manager, salesman)
+
+// ============================================
+// COMBINED OPERATORS (Mix of Array, Element, Evaluation)
+// ============================================
+
+// 51. Find employees with exactly 2 skills AND salary greater than 2000
+
+// 52. Find employees who have "python" skill AND work remotely (isRemote: true)
+
+// 53. Find employees who DON'T have insurance AND salary is less than 1500
+
+// 54. Find departments with more than 2 facilities AND budget greater than 150000
+
+// 55. Find employees whose name starts with "s" OR ends with "d"
+
+// 56. Find employees with incentive field AND commission greater than 0
+
+// 57. Find employees working in dept 20 or 30 AND have "sql" skill
+
+// 58. Find all managers or analysts with performance rating above 4.5
+
+// 59. Find employees with exactly 3 projects AND education is "master" or "phd"
+
+// 60. Find departments where employeeCount is greater than 3 AND isActive is true
