@@ -606,6 +606,12 @@ db.emp.find(
 //? regular expression --> regex
 
 //? $expr (expression) --> it helps us to compare between two fields of a single document, also it allows us to write aggregation queries
+//& filter part --> { $expr: { $op: [v1, v2] } }
+
+//? $mod --> modulus (even or odd)
+//& filter part --> { fieldName: { $mod: [divisor, remainder] } }
+
+//? $where --> not used (slow)
 
 //! Find all employees whose empName contains letter "m" (pattern matching)
 db.emp.find({ empName: { $regex: /m/ } }, { empName: 1, _id: 0 });
@@ -769,3 +775,258 @@ db.emp.find({ empName: { $regex: /^....$/ } }, { empName: 1, _id: 0 });
 // 59. Find employees with exactly 3 projects AND education is "master" or "phd"
 
 // 60. Find departments where employeeCount is greater than 3 AND isActive is true
+
+//~ ========================================================
+
+let a = 10;
+
+//! find all the emp names who are having age greater than deptNo
+db.emp.find(
+  { $expr: { $lt: ["$age", "$deptNo"] } },
+  { age: 1, empName: 1, deptNo: 1, _id: 0 }
+);
+//~ whenever we are passing documents fields as value, 1) use double quotes 2) prefix it with $
+
+//! find all the empNames who were hired in the month of Jan. ($month)
+db.emp.find(
+  {
+    $expr: { $eq: [{ $month: "$hireDate" }, 1] },
+  },
+  { empName: 1, hireDate: 1, _id: 0 }
+);
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      month: { $month: "$hireDate" },
+    },
+  },
+  {
+    $match: {
+      month: 2,
+    },
+  },
+]);
+
+//! find all the emp who are getting salary multiple of 100
+db.emp.find({ salary: { $mod: [100, 0] } }, { salary: 1, _id: 0 });
+
+//~ ==================== update operators =============================
+// 1) update existing value
+// 2) update existing key
+// 3) add a new key value pair
+// 4) remove a key value pair
+//~ 1) <<<<<<<<<<<<<<<< field update operators >>>>>>>>>>>>>>>>>>>>>>>
+
+//? $set --> it is used to update existing value or to add a new key value pair
+//& syntax -> updation part --> { $set: { field1: value1, f2:v2, .... } }
+// it will update the value if the key is present, if not then a new key value pair will be added
+
+//? $unset --> it is used to remove a key value pair
+// updation part --> { $unset: { f1:truthy values, f2:"", f3:"newName"} }
+
+//? $rename --> it is used to rename a key
+// updation part --> { rename: {oldKey: "newKey"} }
+
+// ============================================
+// MONGODB UPDATE OPERATORS PRACTICE QUESTIONS
+// Collections: emp.dept & emp.emp
+// ============================================
+
+// ============================================
+// $expr OPERATOR (Comparison & Aggregation)
+// ============================================
+
+// 1. Find all employees whose salary is greater than their bonus
+
+// 2. Find all employees whose age is less than their department number
+
+// 3. Find all employees whose totalHoursWorked is greater than (salary * 0.5)
+
+// 4. Find all employees whose commission is greater than their bonus
+
+// 5. Find employees hired in the month of April (month = 4)
+
+// 6. Find employees hired in the month of December (month = 12)
+
+// 7. Find employees hired in the year 1981
+
+// 8. Find employees whose (salary + bonus + comm) is greater than 4000
+
+// 9. Find departments where budget is greater than (employeeCount * 50000)
+
+// 10. Find employees where totalHoursWorked divided by age is greater than 50
+
+// ============================================
+// $mod OPERATOR (Modulo Operations)
+// ============================================
+
+// 11. Find all employees whose salary is even (divisible by 2, remainder 0)
+
+// 12. Find all employees whose salary is odd (divisible by 2, remainder 1)
+
+// 13. Find employees whose empNo is divisible by 3 (remainder 0)
+
+// 14. Find employees whose bonus is divisible by 500 (remainder 0)
+
+// 15. Find departments whose deptNo is divisible by 10 (remainder 0)
+
+// 16. Find employees whose age is divisible by 5 (remainder 0)
+
+// 17. Find employees whose totalHoursWorked when divided by 100 gives remainder 0
+
+// 18. Find departments whose budget when divided by 10000 gives remainder 0
+
+// 19. Find employees whose empNo ends in 0 (divisible by 10)
+
+// 20. Find employees whose commission when divided by 400 gives remainder 0
+
+// ============================================
+// FIELD UPDATE OPERATORS ($set, $unset, $rename)
+// ============================================
+
+// 21. Add a new field "lastPromotionDate" with current date to employee "smith"
+
+// 22. Update employee "allen" salary to 2000
+
+// 23. Add a field "parkingSpot" with value "A-101" to employee "king"
+
+// 24. Set "isActive" to false for department 40
+
+// 25. Add "workFromHome" field with value true for employee "ward"
+
+// 26. Update the location of "accounting" department to "manhattan"
+
+// 27. Set performance rating to 4.9 for employee "martin"
+
+// 28. Add a new facility "gym" to the facilities array of department 20
+
+// 29. Rename field "sal" to "salary" for all employees (if not done already)
+
+// 30. Rename field "comm" to "commission" for all employees
+
+// 31. Rename field "loc" to "location" for all departments
+
+// 32. Remove the "incentive" field from employee "ward"
+
+// 33. Remove the "age" field from all employees in department 30
+
+// 34. Remove "headOfDept" field from department 40
+
+// 35. Add "emailVerified" field with value true to all managers
+
+// ============================================
+// ARITHMETIC UPDATE OPERATORS ($max, $min, $inc, $mul)
+// ============================================
+
+// 36. Update employee "smith" salary to 1500 only if 1500 is greater than current salary ($max)
+
+// 37. Update employee "james" salary to 1000 only if 1000 is less than current salary ($min)
+
+// 38. Increase salary of employee "adams" by 500 ($inc)
+
+// 39. Decrease commission of employee "martin" by 200 ($inc with negative)
+
+// 40. Increase bonus of all clerks by 300
+
+// 41. Increase budget of department 20 by 50000
+
+// 42. Decrease totalHoursWorked of employee "turner" by 50 hours
+
+// 43. Increase performance rating of employee "ford" by 0.2 (use $inc)
+
+// 44. Update salary of "allen" to 1800 only if 1800 is greater than current salary
+
+// 45. Increase age of employee "miller" by 1 (birthday increment)
+
+// 46. Multiply salary of employee "king" by 1.1 (10% raise using $mul)
+
+// 47. Multiply bonus of all analysts by 1.15 (15% increase)
+
+// 48. Multiply budget of all active departments by 1.05 (5% increase)
+
+// 49. Increase employeeCount of department 30 by 1 (new hire)
+
+// 50. Set floor number to 6 for department 10, only if 6 is greater than current floor
+
+// ============================================
+// COMBINED UPDATE OPERATIONS
+// ============================================
+
+// 51. For employee "scott": increase salary by 500 AND add field "certified" with value true
+
+// 52. For employee "blake": set performance rating to 4.5 AND increase bonus by 200
+
+// 53. For all salesmen: increase commission by 100 AND add "targetAchieved" field as true
+
+// 54. For department 20: increase budget by 30000 AND add facility "cafeteria"
+
+// 55. For employee "jones": rename "totalHoursWorked" to "hoursLogged" AND increase it by 100
+
+// 56. For all employees in dept 10: increase salary by 300 AND increase bonus by 150
+
+// 57. For employee "clark": set salary to 2800 (only if greater) AND remove "age" field
+
+// 58. For all remote employees: increase bonus by 400 AND add "remoteAllowance" field with 200
+
+// 59. For department "sales": increase employeeCount by 2 AND set isActive to true
+
+// 60. For all employees with insurance: increase bonus by 250 AND add "insurancePremium" with 100
+
+// ============================================
+// ADVANCED UPDATE SCENARIOS
+// ============================================
+
+// 61. Increase salary by 10% for all employees whose performance rating is above 4.5
+
+// 62. Add "seniorEmployee" field as true for employees hired before 1982
+
+// 63. Set commission to 0 for all employees whose job is NOT "salesman"
+
+// 64. Increase budget by 20000 for departments with more than 4 employees
+
+// 65. Add "trainingRequired" field as true for all clerks with performance rating below 4.0
+
+// 66. Decrease bonus by 100 for employees without insurance
+
+// 67. Add "performanceBonus" of 500 for employees with rating exactly 5.0
+
+// 68. Update totalHoursWorked to minimum of 2000 for all employees (using $max)
+
+// 69. Set all commissions to maximum of 1000 (reduce if higher using $min)
+
+// 70. Increase salary by age * 10 for all employees in research department (use $expr in filter)
+
+//! Add a new field "lastPromotionDate" with current date to employee "smith"
+db.emp.updateOne(
+  { empNo: 7369 },
+  {
+    $set: {
+      "performance.lastReviewDate": new Date(),
+      "performance.lastPromotionDate": new Date(),
+      isMarried: true,
+    },
+  }
+);
+
+db.emp.updateOne({ empNo: 7369 }, { $unset: { isMarried: "" } });
+
+db.emp.updateMany({}, { $rename: { empName: "name" } });
+
+//~ 2) arithmetic update op (max, min, inc, etc..)
+//? $max --> update field with maximum value (greater than current value)
+// updation part --> {$max: {key: value}} (value should be strictly greater than the stored value)
+
+db.products.updateOne({ title: "Mi 11X Pro" }, { $max: { totalStock: 40 } });
+
+//? $min --> update field with minimum value (lesser than current value)
+// updation part --> {$min: {key: value}} (value should be strictly lesser than the stored value)
+
+//& if the field is not present then it will we added with the given value
+db.products.updateOne({ title: "Mi 11X Pro" }, { $max: { likes: 40 } });
+
+//? $inc --> it is used to increment/decrement value
+// updation part --> {$inc: {key: value}} (value can be positive or negative integer)
+//& if the field is not present then it will we added with the given value
+//& with $inc, null cannot be used
+db.products.updateOne({ title: "Mi 11X Pro" }, { $inc: { key1: -30 } });
