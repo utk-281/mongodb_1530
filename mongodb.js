@@ -828,6 +828,7 @@ db.emp.find({ salary: { $mod: [100, 0] } }, { salary: 1, _id: 0 });
 //? $rename --> it is used to rename a key
 // updation part --> { rename: {oldKey: "newKey"} }
 
+//! update op questions
 // ============================================
 // MONGODB UPDATE OPERATORS PRACTICE QUESTIONS
 // Collections: emp.dept & emp.emp
@@ -1030,3 +1031,104 @@ db.products.updateOne({ title: "Mi 11X Pro" }, { $max: { likes: 40 } });
 //& if the field is not present then it will we added with the given value
 //& with $inc, null cannot be used
 db.products.updateOne({ title: "Mi 11X Pro" }, { $inc: { key1: -30 } });
+
+//~ array update op (push, pull, etc..)
+
+//? $push --> is is used to add element to the array
+//& syntax --> { $push: { key: value } } (if the key is present then element will be added to the array otherwise a new array will be created, every element gets inserted at the end of the array)
+db.dummy.updateOne({}, { $push: { hobbies: ["music", "football"] } }); // using push if we insert multiple values then a nested array will be created
+
+//? $push + $each ($position, $slice, $sort are known as modifiers) --> it is used to add single/multiple elements to the array without creating nested array
+//& syntax --> {$push: { key: { $each: [v1, v2, v3,......] } }}
+db.dummy.updateOne(
+  {},
+  { $push: { hobbies: { $each: ["music", "football"] } } }
+);
+
+// $position --> if we want to insert elements at a specif position
+db.dummy.updateOne(
+  {},
+  { $push: { hobbies: { $each: ["cooking", "reading"], $position: 2 } } }
+);
+
+// $slice --> if we want to display only few elements
+db.dummy.updateOne(
+  {},
+  { $push: { hobbies: { $each: ["gaming"], $position: 2, $slice: 3 } } }
+);
+
+// sort -->
+db.dummy.updateOne(
+  {},
+  { $push: { hobbies: { $each: ["music"], $position: 2, $sort: -1 } } }
+);
+// -1 is for arranging in descending order
+// 1 is for arranging in ascending order
+
+//? $addToSet --> it is used to add unique elements to the array and we cannot use modifiers wit $addToSet
+db.dummy.updateOne(
+  {},
+  { $addToSet: { hobbies: { $each: ["music", "dancing"] } } }
+);
+db.dummy.updateOne({}, { $addToSet: { hobbies: "music" } });
+
+//? $pop --> it is used to remove element from either first or last
+db.dummy.updateOne({}, { $pop: { hobbies: 1 } }); // removes from end
+db.dummy.updateOne({}, { $pop: { hobbies: -1 } }); // removes from start
+
+//? $pull --> it is used to remove all elements which matches the condition/literal
+db.collection_name.updateOne({}, { $pull: { key: { condition } } });
+db.dummy.updateOne({}, { $pull: { hobbies: { $regex: /ing$/ } } });
+
+//? $pullAll --> it is used to remove all elements which matches the literal values
+db.dummy.updateOne({}, { $pullAll: { hobbies: ["cricket", "swim"] } });
+
+db.dummy.updateOne({}, { $push: { hobbies: "cricket" } });
+
+// let hobbies = ["cricket", "singing", ["music", "football"]];
+let hobbies = ["cricket", "singing", "music", "football"]; // (using $each)
+
+//! add communication skills to all the managers present
+db.emp.updateMany(
+  { job: "manager" },
+  { $addToSet: { skills: "communication" } }
+);
+
+//? $(positional operators )
+
+db.dummy.updateOne({ hobbies: "music" }, { $set: { hobbies: ["h1", "h2"] } });
+
+db.exp.insertMany([
+  {
+    name: "varun",
+    exp: [
+      { name: "google", duration: 12, bonus: 1000 },
+      { name: "abc", duration: 6 },
+      { name: "itc", duration: 15 },
+    ],
+  },
+  {
+    name: "varun",
+    exp: [
+      { name: "google", duration: 12, bonus: 1000 },
+      { name: "abc", duration: 6 },
+      { name: "itc", duration: 2 },
+    ],
+  },
+  {
+    name: "ashwin",
+    exp: [
+      { name: "accenture", duration: 5 },
+      { name: "yahoo", duration: 6 },
+      { name: "asus", duration: 4 },
+    ],
+  },
+  {
+    name: "sirisha",
+    exp: [
+      { name: "google", duration: 3 },
+      { name: "infosys", duration: 15, bonus: 1000 },
+      { name: "itc", duration: 16 },
+    ],
+  },
+]);
