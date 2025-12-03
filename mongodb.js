@@ -1102,7 +1102,7 @@ db.exp.insertMany([
   {
     name: "varun",
     exp: [
-      { name: "google", duration: 12, bonus: 1000 },
+      { name: "google" },
       { name: "abc", duration: 6 },
       { name: "itc", duration: 15 },
     ],
@@ -1110,9 +1110,9 @@ db.exp.insertMany([
   {
     name: "varun",
     exp: [
-      { name: "google", duration: 12, bonus: 1000 },
+      { name: "google", duration: 12 },
       { name: "abc", duration: 6 },
-      { name: "itc", duration: 2 },
+      { name: "itc", duration: 13 },
     ],
   },
   {
@@ -1127,8 +1127,367 @@ db.exp.insertMany([
     name: "sirisha",
     exp: [
       { name: "google", duration: 3 },
-      { name: "infosys", duration: 15, bonus: 1000 },
+      { name: "infosys", duration: 15 },
       { name: "itc", duration: 16 },
     ],
   },
 ]);
+
+//? 1)  update first matched occurrence  -> $
+//? 2)  update all the documents --> $[]
+//? 3)  update only the matched occurrence --> $[e]
+
+//? $ --> this will update only the first matched occurrence
+db.exp.updateMany(
+  {
+    exp: { $elemMatch: { duration: { $gte: 12 } } },
+  },
+  { $set: { "exp.$.bonus": 100 } }
+);
+
+//? $[] --> this will update all the documents
+db.exp.updateMany(
+  {
+    exp: { $elemMatch: { duration: { $gte: 12 } } },
+  },
+  { $set: { "exp.$[].newJoinee": true } }
+);
+
+//? $[e] --> it will update all the matched occurrence
+db.exp.updateMany(
+  {
+    exp: { $elemMatch: { duration: { $gte: 12 } } },
+  },
+  { $set: { "exp.$[e].incentive": 10000 } },
+  {
+    arrayFilters: [{ "e.name": "infosys" }],
+  }
+);
+
+db.actors.insertOne({
+  name: "ayushman",
+  age: 39,
+  _id: "ID2",
+});
+
+db.movies.insertOne({
+  name: "thama",
+  runtime: 139,
+  actors: "ID2",
+});
+
+// db.movies.aggregate([
+//   {
+//     $lookup: {
+//       from: "actors",
+//       foreignField: "_id",
+//       localField: "actors",
+//       as: "actors",
+//     },
+//   },
+// ])
+
+db.createCollection("info", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age", "phone"],
+      properties: {
+        name: {
+          bsonType: "string",
+          message: "name is required and should be a string",
+        },
+        age: {
+          bsonType: "number",
+        },
+        phone: {
+          bsonType: "string",
+        },
+      },
+    },
+  },
+});
+
+//! questions for array update operators ($push, $pull, $pullAll, $pop, $each($slice, $position, $sort,), $addToSet, $, $[], $[e])
+// ============================================
+// MONGODB ARRAY UPDATE OPERATORS PRACTICE QUESTIONS
+// Collections: emp.dept & emp.emp
+// ============================================
+
+// ============================================
+// $push OPERATOR (Add elements to array)
+// ============================================
+
+// 1. Add a new skill "mongodb" to employee "smith"
+
+// 2. Add a new project "mobile_app" to employee "allen"
+
+// 3. Add facility "parking_lot" to department 10
+
+// 4. Add skill "docker" to employee "jones"
+
+// 5. Add project "cloud_migration" to employee "king"
+
+// 6. Add facility "security_desk" to department 20
+
+// 7. Add skill "kubernetes" to employee "scott"
+
+// 8. Add a new project "api_development" to employee "ward"
+
+// 9. Add facility "recreation_room" to all active departments
+
+// 10. Add skill "typescript" to all employees in department 30
+
+// ============================================
+// $push with $each (Add multiple elements)
+// ============================================
+
+// 11. Add multiple skills ["angular", "vue", "svelte"] to employee "turner"
+
+// 12. Add multiple projects ["project_beta", "project_gamma"] to employee "blake"
+
+// 13. Add multiple facilities ["elevator", "emergency_exit"] to department 30
+
+// 14. Add skills ["nodejs", "express", "nestjs"] to employee "adams"
+
+// 15. Add projects ["security_audit", "compliance_review"] to employee "clark"
+
+// 16. Add facilities ["water_cooler", "vending_machine"] to department 10
+
+// 17. Add skills ["aws", "azure", "gcp"] to all managers
+
+// 18. Add projects ["training_program", "onboarding_system"] to employee "ford"
+
+// 19. Add multiple skills ["git", "jenkins", "ci/cd"] to employee "miller"
+
+// 20. Add facilities ["bike_rack", "locker_room"] to all departments with budget > 150000
+
+// ============================================
+// $push with $each and $position (Insert at specific position)
+// ============================================
+
+// 21. Add skill "leadership" at the beginning (position 0) of skills array for employee "jones"
+
+// 22. Add project "priority_project" at position 0 for employee "king"
+
+// 23. Add facility "reception" at the beginning of facilities for department 20
+
+// 24. Add skill "problem_solving" at position 1 in skills array for employee "scott"
+
+// 25. Add project "urgent_fix" at position 0 for all analysts
+
+// ============================================
+// $push with $each and $slice (Limit array size)
+// ============================================
+
+// 26. Add skill "graphql" to employee "ward" and keep only last 5 skills (use $slice: -5)
+
+// 27. Add project "new_feature" to employee "martin" and keep only last 3 projects
+
+// 28. Add facility "storage_new" to department 40 and keep only first 2 facilities (use $slice: 2)
+
+// 29. Add skill "solidity" to employee "adams" and keep only last 4 skills
+
+// 30. Add project "optimization" to employee "blake" and keep only last 4 projects
+
+// ============================================
+// $push with $each and $sort (Sort array after insertion)
+// ============================================
+
+// 31. Add skill "animation" to employee "allen" and sort all skills alphabetically (use $sort: 1)
+
+// 32. Add project "analytics_dashboard" to employee "scott" and sort projects in descending order
+
+// 33. Add facility "auditorium" to department 20 and sort facilities alphabetically
+
+// 34. Add skill "testing" to employee "turner" and sort skills in ascending order
+
+// 35. Add multiple skills ["redis", "kafka"] to employee "ford" and sort all skills
+
+// ============================================
+// $push with $each, $position, $slice, $sort COMBINED
+// ============================================
+
+// 36. Add "team_lead" skill at position 0 to "jones", keep last 6 skills, and sort them
+
+// 37. Add projects ["refactoring", "documentation"] at position 0 to "clark", keep last 5, sort them
+
+// 38. Add facility "innovation_lab" to dept 20 at position 1, keep last 4 facilities, sort them
+
+// ============================================
+// $addToSet OPERATOR (Add only if not exists - no duplicates)
+// ============================================
+
+// 39. Add skill "python" to employee "clark" only if it doesn't already exist
+
+// 40. Add project "project_alpha" to employee "jones" only if not already present
+
+// 41. Add facility "conference_room" to department 10 only if it doesn't exist
+
+// 42. Add skill "sql" to employee "smith" only if not present (avoid duplicates)
+
+// 43. Add project "sales_campaign_q1" to employee "blake" only if not already added
+
+// 44. Add facility "printer" to all departments, but only if they don't have it already
+
+// 45. Add skill "html" to all employees in dept 30, avoiding duplicates
+
+// ============================================
+// $addToSet with $each (Add multiple unique elements)
+// ============================================
+
+// 46. Add skills ["react", "angular", "vue"] to employee "ward" avoiding duplicates
+
+// 47. Add projects ["audit_2024", "compliance_check"] to employee "king" without duplicates
+
+// 48. Add facilities ["first_aid", "fire_extinguisher"] to dept 30 avoiding duplicates
+
+// 49. Add skills ["agile", "scrum", "kanban"] to all managers without creating duplicates
+
+// 50. Add projects ["code_review", "peer_testing"] to all analysts avoiding duplicates
+
+// ============================================
+// $pull OPERATOR (Remove specific elements from array)
+// ============================================
+
+// 51. Remove skill "html" from employee "jones"
+
+// 52. Remove project "data_entry" from employee "james"
+
+// 53. Remove facility "storage" from department 40
+
+// 54. Remove skill "sql" from employee "smith"
+
+// 55. Remove project "web_portal" from employee "turner"
+
+// 56. Remove facility "loading_dock" from all departments
+
+// 57. Remove skill "excel" from all clerks
+
+// 58. Remove project "sales_campaign_q1" from all employees in dept 30
+
+// 59. Remove facility "coffee_machine" from department 10
+
+// 60. Remove skill "powerpoint" from employee "martin"
+
+// ============================================
+// $pull with conditions (Remove based on criteria)
+// ============================================
+
+// 61. Remove all skills that start with "html" from employee "clark"
+
+// 62. Remove all projects containing "sales" in name from employee "blake"
+
+// 63. Remove facilities starting with "old_" from all departments
+
+// 64. Remove all skills with length less than 3 characters from employee "adams"
+
+// 65. Remove projects that end with "_q1" from all salesmen
+
+// ============================================
+// $pullAll OPERATOR (Remove multiple specific values)
+// ============================================
+
+// 66. Remove skills ["sql", "excel"] from employee "james"
+
+// 67. Remove projects ["sales_campaign_q1", "sales_campaign_q2"] from employee "allen"
+
+// 68. Remove facilities ["storage", "loading_dock"] from department 40
+
+// 69. Remove skills ["html", "css", "javascript"] from employee "miller"
+
+// 70. Remove multiple projects ["project_alpha", "research_initiative"] from employee "smith"
+
+// 71. Remove facilities ["printer", "coffee_machine"] from department 10
+
+// 72. Remove skills ["blockchain", "ai"] from all employees in dept 20
+
+// ============================================
+// $pop OPERATOR (Remove first or last element)
+// ============================================
+
+// 73. Remove the last skill from employee "turner" (use $pop: 1)
+
+// 74. Remove the first project from employee "blake" (use $pop: -1)
+
+// 75. Remove the last facility from department 20 (use $pop: 1)
+
+// 76. Remove the first skill from employee "clark" (use $pop: -1)
+
+// 77. Remove the last project from all analysts (use $pop: 1)
+
+// 78. Remove the first facility from department 30 (use $pop: -1)
+
+// 79. Remove the last skill from all employees with more than 3 skills
+
+// 80. Remove the first project from employee "king" (use $pop: -1)
+
+// ============================================
+// $ POSITIONAL OPERATOR (Update first matching array element)
+// ============================================
+
+// 81. Employee "clark" has ["java", "python", "html", "accounting"]. Change "python" to "python3"
+//     Find by skills: "python" and update that specific element
+
+// 82. Employee "turner" has multiple skills. Update the first occurrence of "javascript" to "javascript_es6"
+
+// 83. Department 20 has facilities array. Update first "conference_room" to "conference_room_A"
+
+// 84. For employee "jones", update the project "project_alpha" to "project_alpha_v2"
+
+// 85. Update first skill "sql" to "postgresql" for employee "smith"
+
+// ============================================
+// $[] ALL POSITIONAL OPERATOR (Update all array elements)
+// ============================================
+
+// 86. Convert all skills to uppercase for employee "adams" (use $toUpper with $[])
+
+// 87. Add "_completed" suffix to all projects for employee "martin"
+
+// 88. Add "_zone" suffix to all facilities in department 30
+
+// 89. Prepend "skill_" to all skills for employee "james"
+
+// 90. Append "_2024" to all projects for employee "ford"
+
+// ============================================
+// $[element] FILTERED POSITIONAL (Update specific array elements matching criteria)
+// ============================================
+
+// 91. Employee "clark" has skills ["java", "python", "html", "accounting"]
+//     Update all skills that have length > 5 characters to add "_advanced" suffix
+//     Use arrayFilters
+
+// 92. For employee "blake", update all projects that contain "sales" to add "_priority" suffix
+//     Use arrayFilters with $regex
+
+// 93. Update all facilities in dept 20 that start with "conference" to add "_renovated" suffix
+
+// 94. For employee "turner", update all skills that match ["javascript", "html", "php"] to add "_v2"
+
+// 95. Update all projects for "jones" that don't contain "alpha" to add "_archived" suffix
+
+// ============================================
+// COMPLEX ARRAY UPDATE SCENARIOS
+// ============================================
+
+// 96. Add "expert_" prefix to all skills for managers with performance rating > 4.0
+
+// 97. Remove "sales_campaign_q1" from all employees and add "sales_campaign_q4" instead
+
+// 98. For all remote employees, add skills ["remote_collaboration", "zoom"] avoiding duplicates
+
+// 99. Add facility "solar_panel" to all departments with budget > 180000 at position 0
+
+// 100. Remove last 2 skills from employees who have more than 5 skills (use $slice)
+
+// 101. Add project "year_end_review" to all employees, keep only last 4 projects sorted alphabetically
+
+// 102. For dept 10, remove all facilities and add new ones ["modern_office", "smart_board", "lounge"]
+
+// 103. Update all skills containing "sql" to "sql_certified" for employees with insurance
+
+// 104. Add "urgent" tag to first project of all employees with performance rating < 3.5
+
+// 105. Remove skills ["html", "css"] from all employees and add ["react", "nextjs"] without duplicates
