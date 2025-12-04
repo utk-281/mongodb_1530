@@ -276,6 +276,7 @@ db.collection_name.updateMany({ filter }, { updationValue }, { options });
 //? ==> arithmetic and date op (add, subtract, date, etc..)
 //~ projection operators ($, $slice, etc..)
 //~ geospatial operators ==> (GeoJSON format)
+//! indexing, replication, sharding (theory)
 
 //! ============================ Comparison operators =============================
 //? equals to ----------------------------------------> $eq
@@ -310,10 +311,7 @@ db.emp.find(
 
 db.emp.find({ deptNo: { $in: [10, 20] } }, { empName: 1, _id: 0, deptNo: 1 });
 //& --> case2) when multiple conditions are applied on different fields: works as LOGICAL AND (all the conditions must be fulfilled)
-db.emp.find(
-  { sal: { $gt: 1400 }, job: "clerk", sal: 1200 },
-  { sal: 1, job: 1, _id: 0 }
-);
+db.emp.find({ sal: { $gt: 1400 }, job: "clerk" }, { sal: 1, job: 1, _id: 0 });
 //? this will return the documents who are clerk and are having salary greater than 1400
 
 /* 
@@ -1209,6 +1207,7 @@ db.createCollection("info", {
 });
 
 //! questions for array update operators ($push, $pull, $pullAll, $pop, $each($slice, $position, $sort,), $addToSet, $, $[], $[e])
+
 // ============================================
 // MONGODB ARRAY UPDATE OPERATORS PRACTICE QUESTIONS
 // Collections: emp.dept & emp.emp
@@ -1491,3 +1490,194 @@ db.createCollection("info", {
 // 104. Add "urgent" tag to first project of all employees with performance rating < 3.5
 
 // 105. Remove skills ["html", "css"] from all employees and add ["react", "nextjs"] without duplicates
+
+let b = 10;
+
+//! data modelling --> it is the process of structuring data in a way that is easy to manage and query. (1) how data is stored (2)--> what is the relation bw the data (embed and reference)
+
+/* 
+Embedded Documents (Denormalization)
+  “Embedded documents refer to the practice of storing related data inside a parent document. The guiding idea is: store together what is queried together.”
+
+When to use Embedded Documents
+  When the relationship is one-to-few
+  When the related data is frequently read together
+  When the embedded data rarely changes independently
+  When atomic updates are needed
+
+Example:
+{
+  "_id": 1,
+  "name": "Aman",
+  "orders": [
+    { "orderId": 101, "amount": 499 },
+    { "orderId": 102, "amount": 299 }
+  ]
+}
+
+Pros
+  Single document reads (very fast)
+  Fewer queries and no joins
+  Atomic updates within the same document
+
+Cons
+  Document can grow too large (16MB limit)
+  Hard to manage if the embedded array grows endlessly
+*/
+
+/* 
+References (Normalization / Linking)
+  “In references, related data is stored in separate collections but connected through ObjectId fields. This is similar to foreign keys in relational databases.”
+
+When to use References
+  When the relationship is one-to-many (large) or many-to-many
+  When data needs separate lifecycle management
+  When the related data is updated frequently
+  When duplication will cause inconsistency
+
+Example:
+ 
+User Collection:
+{
+  "_id": 1,
+  "name": "Aman",
+  "departmentId": ObjectId("abc123")
+}
+
+Department Collection:
+{
+  "_id": "abc123",
+  "name": "Engineering"
+}
+
+Pros
+  No document size limitation
+  Clean and scalable structure
+  Reduces duplication
+
+Cons
+  Requires multiple queries or $lookup joins
+  Slightly slower for read-heavy operations
+*/
+
+/* 
+{
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["123"],
+}
+*/
+
+db.createCollection("info", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age", "isMarried", "skills"],
+      properties: {
+        name: {
+          bsonType: "string",
+          description: "name is required and should be a string",
+        },
+        age: {
+          bsonType: "int",
+          description: "age is required and should be a number",
+        },
+        isMarried: {
+          bsonType: "bool",
+        },
+        skills: {
+          bsonType: "array",
+          items: {
+            bsonType: "string",
+          },
+        },
+      },
+    },
+  },
+});
+
+db.info.insertOne({
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["123"],
+  email: "abc",
+});
+
+//! for oject --> define properties
+//~ for array --> define items
+
+/* 
+{
+  age:int,
+  address:{
+      city:string,
+      pincode:string
+    },
+  skills:[{game:string, max:int}]
+}
+*/
+
+db.createCollection("info2", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["age", "address", "score"],
+      properties: {
+        age: {
+          bsonType: "int",
+          description: "age is reburied and should be a number",
+        },
+        address: {
+          bsonType: "object",
+          required: ["city", "pincode"],
+          properties: {
+            city: {
+              bsonType: "string",
+            },
+            pincode: {
+              bsonType: "string",
+            },
+          },
+        },
+        score: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+          },
+        },
+      },
+    },
+  },
+});
+
+//! display all the emp names
+db.emp.find({}, { name: 1, _id: 0 });
+
+//! display all the emp names in ascending order
+db.emp.find({}, { name: 1, _id: 0 }).sort({ name: -1 });
+
+//! display all the emp names and salary who is having max salary
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(1);
+
+//! display all the emp names and salary who is having lowest salary
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: 1 }).limit(1);
+
+//! display all the emp names and salary who is having second highest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(1)
+  .limit(1);
+
+//! display all the emp names and salary who is having third lowest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: 1 })
+  .skip(2)
+  .limit(1);
+
+//! aggregation (aggregate()) -->
+db.emp.find(); //? (filter, projection, sort, skip, limit)
+// db.emp.aggregate(); ==> using aggregate() we can only fetch
