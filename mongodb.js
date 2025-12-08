@@ -1474,11 +1474,25 @@ It is a data processing pipeline. Each stage in the pipeline takes the incoming 
 //& different aggregation operators
 
 //? $match --> it is used to filter out the documents based on some conditions
-//? $project --> it is used to hide/display the fields of the documents and also used for aliasing
-
 db.collection_name.aggregate([
   {
     $match: { conditions },
+  },
+]);
+
+//? $project --> it is used to hide/display (to display use key:1, to hide use key:0) the fields of the documents and also used for aliasing. if key is present then it will be displayed otherwise if not present then it will not be displayed
+
+//? $group --> it is used to group the documents based on some field and perform aggregate functions like sum, avg, min, max, count. (these 5 operators can be used only inside $group)
+db.collection_name.aggregate([
+  {
+    $group: {
+      _id: "$fieldName",
+      count: { $sum: 1 },
+      max: { $max: "$fieldName" },
+      min: { $min: "$fieldName" },
+      avg: { $avg: "$fieldName" },
+      sum: { $sum: "$fieldName" },
+    },
   },
 ]);
 
@@ -1559,8 +1573,46 @@ db.emp.aggregate([
   {
     $project: {
       name: 1,
-      isSalGt: {},
+      isSalGt: { $gt: ["$salary", 2000] },
       _id: 0,
+      salary: 1,
+    },
+  },
+]);
+
+// Count total number of employees in each department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      numberOfEmp: { $sum: 1 },
+      maxSal: { $max: "$salary" },
+      minSal: { $min: "$salary" },
+      maxAge: { $max: "$age" },
+      minAge: { $min: "$age" },
+      totalSalary: { $sum: "$salary" },
+    },
+  },
+  {
+    $project: {
+      departmentNumber: "$_id",
+      _id: 0,
+      numberOfEmp: 1,
+      minAge: 1,
+      maxAge: 1,
+      minSal: 1,
+      maxSal: 1,
+      totalSalary: 1,
+    },
+  },
+]);
+
+// Count total employees by city
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      count: { $sum: 1 },
     },
   },
 ]);

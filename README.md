@@ -5169,6 +5169,2883 @@ db.places.find({
 └──────────────────────────────────────────────────────────────────┘
 ```
 
+```markdown
+# MongoDB Data Modeling & Aggregation - Complete Guide
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [Data Modeling](#data-modeling)
+  - [What is Data Modeling?](#what-is-data-modeling)
+  - [Embedded Documents (Denormalization)](#embedded-documents-denormalization)
+  - [References (Normalization)](#references-normalization)
+  - [Embedded vs Referenced - Comparison](#embedded-vs-referenced---comparison)
+- [Schema Validation](#schema-validation)
+  - [Creating Collections with Validators](#creating-collections-with-validators)
+  - [Validation Rules](#validation-rules)
+  - [Complex Schema Examples](#complex-schema-examples)
+- [MongoDB Query Methods](#mongodb-query-methods)
+  - [find() Method](#find-method)
+  - [Sorting Documents](#sorting-documents)
+  - [Limiting Results](#limiting-results)
+  - [Skipping Documents](#skipping-documents)
+  - [Query Method Chaining](#query-method-chaining)
+- [MongoDB Aggregation Framework](#mongodb-aggregation-framework)
+  - [What is Aggregation?](#what-is-aggregation)
+  - [Aggregation Pipeline](#aggregation-pipeline)
+  - [Aggregation Stages](#aggregation-stages)
+  - [Practical Examples](#practical-examples)
+- [Best Practices](#best-practices)
+- [Additional Resources](#additional-resources)
+
+---
+
+## Data Modeling
+
+### What is Data Modeling?
+
+**Data Modeling** is the process of structuring data in a way that is easy to manage and query.
+
+**Two Key Aspects:**
+
+1. **How data is stored** - Document structure and organization
+2. **What is the relationship between data** - Embedded vs Referenced
+```
+
+---
+
+## Embedded Documents (Denormalization)
+
+**Definition**: Embedded documents refer to the practice of storing related data inside a parent document.
+
+**Guiding Principle**:
+
+> "Store together what is queried together"
+
+```
+┌────────────────────────────────────────────────────┐
+│        Embedded Documents Pattern                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Parent Document                                   │
+│  ┌──────────────────────────────────────────┐    │
+│  │ {                                        │    │
+│  │   _id: 1,                                │    │
+│  │   name: "Aman",                          │    │
+│  │   email: "aman@example.com",             │    │
+│  │   orders: [        ← Embedded Array      │    │
+│  │     {                                    │    │
+│  │       orderId: 101,                      │    │
+│  │       amount: 499,                       │    │
+│  │       date: "2024-01-15"                 │    │
+│  │     },                                   │    │
+│  │     {                                    │    │
+│  │       orderId: 102,                      │    │
+│  │       amount: 299,                       │    │
+│  │       date: "2024-02-20"                 │    │
+│  │     }                                    │    │
+│  │   ]                                      │    │
+│  │ }                                        │    │
+│  └──────────────────────────────────────────┘    │
+│                                                    │
+│  Single Document = User + All Orders              │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+### When to Use Embedded Documents
+
+```
+┌────────────────────────────────────────────────────┐
+│      Use Embedded Documents When:                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ✅ One-to-Few Relationship                         │
+│     Example: User has 2-10 addresses               │
+│                                                    │
+│  ✅ Data is Frequently Read Together                │
+│     Example: Blog post with comments               │
+│                                                    │
+│  ✅ Embedded Data Rarely Changes Independently      │
+│     Example: Product with specifications           │
+│                                                    │
+│  ✅ Atomic Updates Are Needed                       │
+│     Example: Order with line items                 │
+│                                                    │
+│  ✅ Data Has Clear Ownership                        │
+│     Example: Invoice with invoice items            │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+### Embedded Documents Example
+
+```javascript
+// User with embedded orders (One-to-Few)
+{
+  "_id": 1,
+  "name": "Aman Kumar",
+  "email": "aman@example.com",
+  "phone": "+91-9876543210",
+  "orders": [
+    {
+      "orderId": 101,
+      "product": "Laptop",
+      "amount": 45000,
+      "orderDate": ISODate("2024-01-15"),
+      "status": "delivered"
+    },
+    {
+      "orderId": 102,
+      "product": "Mouse",
+      "amount": 500,
+      "orderDate": ISODate("2024-02-20"),
+      "status": "shipped"
+    }
+  ]
+}
+
+// Blog post with embedded comments
+{
+  "_id": ObjectId("..."),
+  "title": "Introduction to MongoDB",
+  "content": "MongoDB is a NoSQL database...",
+  "author": "John Doe",
+  "publishedDate": ISODate("2024-01-10"),
+  "comments": [
+    {
+      "commentId": 1,
+      "user": "Alice",
+      "text": "Great article!",
+      "date": ISODate("2024-01-11")
+    },
+    {
+      "commentId": 2,
+      "user": "Bob",
+      "text": "Very informative",
+      "date": ISODate("2024-01-12")
+    }
+  ],
+  "tags": ["mongodb", "nosql", "database"]
+}
+
+// Product with embedded specifications
+{
+  "_id": "PROD001",
+  "name": "Dell Laptop",
+  "price": 55000,
+  "specifications": {
+    "processor": "Intel i7",
+    "ram": "16GB",
+    "storage": "512GB SSD",
+    "display": "15.6 inch",
+    "graphics": "NVIDIA GTX 1650"
+  },
+  "warranty": {
+    "duration": "1 year",
+    "type": "manufacturer",
+    "extendable": true
+  }
+}
+```
+
+### Pros of Embedded Documents
+
+```
+┌────────────────────────────────────────────────────┐
+│      Advantages of Embedded Documents              │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ✅ Single Document Reads (Very Fast)               │
+│     One query retrieves all related data           │
+│     db.users.findOne({ _id: 1 })                   │
+│     → Returns user + all orders                    │
+│                                                    │
+│  ✅ Fewer Queries (No Joins Required)               │
+│     No need for multiple database calls            │
+│     All data in one place                          │
+│                                                    │
+│  ✅ Atomic Updates                                  │
+│     Update parent and embedded data together       │
+│     ACID guarantees within single document         │
+│                                                    │
+│  ✅ Better Locality                                 │
+│     Related data stored physically together        │
+│     Improved cache performance                     │
+│                                                    │
+│  ✅ Simplified Data Model                           │
+│     Easier to understand and maintain              │
+│     Natural representation of relationships        │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Performance Example:**
+
+```javascript
+// Embedded - ONE query
+let user = db.users.findOne({ _id: 1 });
+// Returns: user + all orders in one go
+// Time: ~2-5ms
+
+// vs Referenced - MULTIPLE queries
+let user = db.users.findOne({ _id: 1 });
+let orders = db.orders.find({ userId: 1 });
+// Returns: user first, then orders separately
+// Time: ~10-20ms (multiple round trips)
+```
+
+### Cons of Embedded Documents
+
+```
+┌────────────────────────────────────────────────────┐
+│      Disadvantages of Embedded Documents           │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ❌ Document Size Limit (16MB)                      │
+│     MongoDB has 16MB per document limit            │
+│     Embedding too much data hits this limit        │
+│                                                    │
+│  ❌ Unbounded Growth Problem                        │
+│     Arrays can grow indefinitely                   │
+│     Example: User with 10,000 orders              │
+│     → Document becomes too large                   │
+│                                                    │
+│  ❌ Data Duplication                                │
+│     Same data repeated across documents            │
+│     Example: Product info in each order           │
+│     → Update one, must update all                  │
+│                                                    │
+│  ❌ Difficult to Query Embedded Data                │
+│     Harder to search/filter across embedded items  │
+│     May need aggregation for complex queries       │
+│                                                    │
+│  ❌ Working Set Bloat                               │
+│     Fetching large documents uses more memory      │
+│     Affects cache efficiency                       │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Problem Scenario:**
+
+```javascript
+// ❌ BAD: Unbounded array growth
+{
+  "_id": 1,
+  "name": "Popular User",
+  "posts": [
+    { /* post 1 */ },
+    { /* post 2 */ },
+    { /* post 3 */ },
+    // ... 10,000 more posts
+    // Document size: 18MB → ERROR!
+  ]
+}
+
+// ✅ GOOD: Use references for large collections
+{
+  "_id": 1,
+  "name": "Popular User",
+  "postsCount": 10000
+}
+// Posts stored separately in 'posts' collection
+```
+
+---
+
+## References (Normalization / Linking)
+
+**Definition**: In references, related data is stored in separate collections but connected through ObjectId fields.
+
+**Comparison**: Similar to foreign keys in relational databases.
+
+```
+┌────────────────────────────────────────────────────┐
+│          Referenced Documents Pattern              │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Collection 1: Users                               │
+│  ┌──────────────────────────────────────────┐    │
+│  │ {                                        │    │
+│  │   _id: 1,                                │    │
+│  │   name: "Aman",                          │    │
+│  │   departmentId: ObjectId("abc123") ──┐   │    │
+│  │ }                                    │   │    │
+│  └──────────────────────────────────────┼───┘    │
+│                                         │        │
+│  Collection 2: Departments              │        │
+│  ┌──────────────────────────────────────▼───┐    │
+│  │ {                                        │    │
+│  │   _id: ObjectId("abc123"),  ← Referenced │    │
+│  │   name: "Engineering",                   │    │
+│  │   location: "Bangalore"                  │    │
+│  │ }                                        │    │
+│  └──────────────────────────────────────────┘    │
+│                                                    │
+│  Data stored separately, linked by ObjectId        │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+### When to Use References
+
+```
+┌────────────────────────────────────────────────────┐
+│          Use References When:                      │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ✅ One-to-Many (Large) Relationship                │
+│     Example: Author with 1000+ books               │
+│                                                    │
+│  ✅ Many-to-Many Relationship                       │
+│     Example: Students and Courses                  │
+│                                                    │
+│  ✅ Data Needs Separate Lifecycle                   │
+│     Example: Orders and Products                   │
+│     (Products exist independently)                 │
+│                                                    │
+│  ✅ Data Updated Frequently                         │
+│     Example: Product prices, inventory             │
+│                                                    │
+│  ✅ Duplication Would Cause Inconsistency           │
+│     Example: User profile referenced by posts      │
+│     (Profile changes should reflect everywhere)    │
+│                                                    │
+│  ✅ Need to Query Referenced Data Independently     │
+│     Example: All products, all orders separately   │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+### Referenced Documents Example
+
+```javascript
+// ===== Example 1: User and Department =====
+
+// Users Collection
+{
+  "_id": 1,
+  "name": "Aman Kumar",
+  "email": "aman@example.com",
+  "departmentId": ObjectId("507f1f77bcf86cd799439011")  // Reference
+}
+
+// Departments Collection
+{
+  "_id": ObjectId("507f1f77bcf86cd799439011"),
+  "name": "Engineering",
+  "location": "Bangalore",
+  "head": "John Doe"
+}
+
+// Query to get user with department (2 queries)
+let user = db.users.findOne({ _id: 1 });
+let dept = db.departments.findOne({ _id: user.departmentId });
+
+// OR using $lookup (aggregation join)
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "departments",
+      localField: "departmentId",
+      foreignField: "_id",
+      as: "department"
+    }
+  }
+]);
+
+
+// ===== Example 2: E-commerce - Products and Orders =====
+
+// Products Collection
+{
+  "_id": "PROD001",
+  "name": "Laptop",
+  "price": 55000,
+  "stock": 25,
+  "category": "Electronics"
+}
+
+// Orders Collection
+{
+  "_id": ObjectId("..."),
+  "userId": 1,
+  "orderDate": ISODate("2024-01-15"),
+  "items": [
+    {
+      "productId": "PROD001",  // Reference to product
+      "quantity": 1,
+      "priceAtPurchase": 55000  // Snapshot of price
+    }
+  ],
+  "totalAmount": 55000,
+  "status": "delivered"
+}
+
+
+// ===== Example 3: Many-to-Many - Students and Courses =====
+
+// Students Collection
+{
+  "_id": 1,
+  "name": "Rahul Sharma",
+  "email": "rahul@example.com",
+  "enrolledCourses": [
+    ObjectId("course001"),  // Array of references
+    ObjectId("course002"),
+    ObjectId("course003")
+  ]
+}
+
+// Courses Collection
+{
+  "_id": ObjectId("course001"),
+  "title": "Database Systems",
+  "instructor": "Dr. Smith",
+  "credits": 3,
+  "enrolledStudents": [
+    1,  // Array of student IDs
+    2,
+    3,
+    // ... more students
+  ]
+}
+
+
+// ===== Example 4: Blog - Authors and Posts =====
+
+// Authors Collection
+{
+  "_id": "author123",
+  "name": "John Doe",
+  "bio": "Tech blogger and developer",
+  "email": "john@example.com"
+}
+
+// Posts Collection
+{
+  "_id": ObjectId("..."),
+  "title": "Introduction to MongoDB",
+  "content": "MongoDB is a NoSQL database...",
+  "authorId": "author123",  // Reference to author
+  "publishedDate": ISODate("2024-01-10"),
+  "tags": ["mongodb", "database"],
+  "views": 1250
+}
+```
+
+### Pros of References
+
+```
+┌────────────────────────────────────────────────────┐
+│        Advantages of Referenced Documents          │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ✅ No Document Size Limitation                     │
+│     Can have unlimited related documents           │
+│     No 16MB restriction concerns                   │
+│                                                    │
+│  ✅ Clean and Scalable Structure                    │
+│     Each collection has single responsibility      │
+│     Easy to understand and maintain                │
+│                                                    │
+│  ✅ Reduces Data Duplication                        │
+│     Single source of truth                         │
+│     Update once, reflects everywhere               │
+│                                                    │
+│  ✅ Independent Lifecycle Management                │
+│     CRUD operations on each collection separately  │
+│     Example: Delete user, keep their posts         │
+│                                                    │
+│  ✅ Better for Complex Queries                      │
+│     Easier to query referenced collection          │
+│     Can use indexes effectively                    │
+│                                                    │
+│  ✅ Flexible Relationships                          │
+│     Supports many-to-many easily                   │
+│     Can change relationships dynamically           │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Update Efficiency Example:**
+
+```javascript
+// Scenario: Update product price
+
+// ✅ WITH REFERENCES (Update once)
+db.products.updateOne({ _id: "PROD001" }, { $set: { price: 50000 } });
+// All orders referencing this product see updated price
+// (if they query products collection)
+
+// ❌ WITH EMBEDDED (Update multiple times)
+db.orders.updateMany(
+  { "items.productId": "PROD001" },
+  { $set: { "items.$.price": 50000 } }
+);
+// Must update every order that contains this product
+// Slow and error-prone
+```
+
+### Cons of References
+
+```
+┌────────────────────────────────────────────────────┐
+│      Disadvantages of Referenced Documents         │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ❌ Requires Multiple Queries                       │
+│     Need separate queries for related data         │
+│     Or use $lookup (which has overhead)            │
+│                                                    │
+│  ❌ No Joins at Database Level                      │
+│     $lookup is not as efficient as SQL joins       │
+│     Must be done in aggregation pipeline           │
+│                                                    │
+│  ❌ Slightly Slower for Read-Heavy Operations       │
+│     Multiple round-trips to database               │
+│     Network overhead for each query                │
+│                                                    │
+│  ❌ Complex Application Logic                       │
+│     Application must handle multiple queries       │
+│     Must manually join data in code                │
+│                                                    │
+│  ❌ No Atomic Updates Across Collections            │
+│     Can't update user + department atomically      │
+│     May need transactions (added complexity)       │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Performance Comparison:**
+
+```javascript
+// Embedded (Fast - 1 query)
+let userData = db.users.findOne({ _id: 1 });
+// Returns user + all embedded orders
+// Time: ~3ms
+
+// Referenced (Slower - 2+ queries)
+let user = db.users.findOne({ _id: 1 });
+let orders = db.orders.find({ userId: 1 }).toArray();
+// Returns user first, then orders
+// Time: ~15ms
+
+// Referenced with $lookup (Medium - 1 aggregation)
+let result = db.users
+  .aggregate([
+    { $match: { _id: 1 } },
+    {
+      $lookup: {
+        from: "orders",
+        localField: "_id",
+        foreignField: "userId",
+        as: "orders",
+      },
+    },
+  ])
+  .toArray();
+// Returns joined data
+// Time: ~8ms
+```
+
+---
+
+## Embedded vs Referenced - Comparison
+
+### Comprehensive Comparison Table
+
+| Aspect                | Embedded Documents          | Referenced Documents              |
+| --------------------- | --------------------------- | --------------------------------- |
+| **Relationship Type** | One-to-Few (1-100 items)    | One-to-Many (1000+), Many-to-Many |
+| **Document Size**     | Can hit 16MB limit          | No size concerns                  |
+| **Query Performance** | Fast (1 query)              | Slower (multiple queries)         |
+| **Data Duplication**  | Higher (repeated data)      | Lower (single source)             |
+| **Data Consistency**  | Can have stale data         | Always consistent                 |
+| **Updates**           | Update parent document      | Update separate collection        |
+| **Atomic Operations** | Yes (within document)       | No (need transactions)            |
+| **Scalability**       | Limited by document size    | Highly scalable                   |
+| **Use Case**          | User profile, blog comments | Products, users, departments      |
+| **Complexity**        | Simple                      | More complex                      |
+
+### Visual Decision Tree
+
+```
+┌─────────────────────────────────────────────────────────┐
+│        Embedded vs Referenced - Decision Tree           │
+└─────────────────────────────────────────────────────────┘
+
+                    Start
+                      │
+          ┌───────────┴───────────┐
+          │                       │
+    How many related         Will data grow
+    documents?               unbounded?
+          │                       │
+      ┌───┴────┐            ┌────┴────┐
+    Few       Many         YES        NO
+   (<100)    (>1000)        │          │
+      │         │           │          │
+      │         │       REFERENCE  Is data accessed
+      │    REFERENCE              together?
+      │                              │
+      │                         ┌────┴────┐
+      │                       YES        NO
+      │                        │          │
+  Are updates                  │      REFERENCE
+  frequent?              Can data change
+      │                  independently?
+  ┌───┴───┐                    │
+ YES     NO              ┌─────┴─────┐
+  │       │             YES         NO
+  │       │              │           │
+  │   EMBEDDED      REFERENCE    EMBEDDED
+  │
+Do you need
+atomicity?
+  │
+┌─┴─┐
+YES NO
+ │   │
+ │  REFERENCE
+ │
+EMBEDDED
+```
+
+### Real-World Examples Comparison
+
+**Example 1: E-commerce Order System**
+
+```javascript
+// ===== EMBEDDED APPROACH =====
+// Good for: Small number of line items per order
+
+{
+  "_id": ObjectId("order001"),
+  "userId": 123,
+  "orderDate": ISODate("2024-01-15"),
+  "status": "delivered",
+  "items": [  // Embedded line items
+    {
+      "productName": "Laptop",
+      "productId": "PROD001",
+      "quantity": 1,
+      "price": 55000
+    },
+    {
+      "productName": "Mouse",
+      "productId": "PROD002",
+      "quantity": 2,
+      "price": 500
+    }
+  ],
+  "totalAmount": 56000,
+  "shippingAddress": {  // Embedded address
+    "street": "123 Main St",
+    "city": "Mumbai",
+    "pincode": "400001"
+  }
+}
+
+// Pros: Single query to get complete order
+// Cons: Product info duplicated, can't update product details easily
+
+
+// ===== REFERENCED APPROACH =====
+// Good for: Large catalog, frequent price updates
+
+// Orders Collection
+{
+  "_id": ObjectId("order001"),
+  "userId": 123,
+  "orderDate": ISODate("2024-01-15"),
+  "status": "delivered",
+  "items": [  // References to products
+    {
+      "productId": "PROD001",  // Reference
+      "quantity": 1,
+      "priceAtPurchase": 55000  // Snapshot
+    },
+    {
+      "productId": "PROD002",
+      "quantity": 2,
+      "priceAtPurchase": 500
+    }
+  ],
+  "totalAmount": 56000
+}
+
+// Products Collection (separate)
+{
+  "_id": "PROD001",
+  "name": "Laptop",
+  "currentPrice": 50000,  // Can update independently
+  "stock": 25,
+  "description": "..."
+}
+
+// Pros: No duplication, easy to update products
+// Cons: Need $lookup to get product details
+```
+
+**Example 2: Blog System**
+
+```javascript
+// ===== EMBEDDED APPROACH =====
+// Good for: Few comments per post
+
+{
+  "_id": ObjectId("post001"),
+  "title": "Introduction to MongoDB",
+  "content": "...",
+  "author": "John Doe",
+  "comments": [  // Embedded comments
+    {
+      "user": "Alice",
+      "text": "Great post!",
+      "date": ISODate("2024-01-11")
+    },
+    {
+      "user": "Bob",
+      "text": "Very helpful",
+      "date": ISODate("2024-01-12")
+    }
+  ]
+}
+
+// Pros: Fast retrieval of post + comments
+// Cons: Limited to ~1000 comments before document gets too large
+
+
+// ===== REFERENCED APPROACH =====
+// Good for: Viral posts with 10,000+ comments
+
+// Posts Collection
+{
+  "_id": ObjectId("post001"),
+  "title": "Introduction to MongoDB",
+  "content": "...",
+  "author": "John Doe",
+  "commentsCount": 15000
+}
+
+// Comments Collection (separate)
+{
+  "_id": ObjectId("comment001"),
+  "postId": ObjectId("post001"),  // Reference
+  "user": "Alice",
+  "text": "Great post!",
+  "date": ISODate("2024-01-11"),
+  "likes": 45
+}
+
+// Pros: Can handle unlimited comments
+// Cons: Need separate query for comments
+```
+
+---
+
+## Hybrid Approach
+
+**Best Practice**: Often, the best solution is a hybrid of both approaches.
+
+```javascript
+// ===== HYBRID EXAMPLE: E-commerce Order =====
+
+{
+  "_id": ObjectId("order001"),
+  "userId": 123,
+  "orderDate": ISODate("2024-01-15"),
+
+  // Embedded: Shipping info (won't change)
+  "shippingAddress": {
+    "street": "123 Main St",
+    "city": "Mumbai",
+    "pincode": "400001"
+  },
+
+  // Hybrid: Product snapshot + reference
+  "items": [
+    {
+      "productId": "PROD001",        // Reference (for current info)
+      "productName": "Laptop",        // Snapshot (historical)
+      "priceAtPurchase": 55000,      // Snapshot (historical)
+      "quantity": 1
+    }
+  ],
+
+  // Referenced: User info (can change)
+  "userId": 123,  // Reference to users collection
+
+  "totalAmount": 56000,
+  "status": "delivered"
+}
+
+// Why this works:
+// ✓ Shipping address embedded (won't change, always needed)
+// ✓ Product ID referenced (can get current info if needed)
+// ✓ Product snapshot embedded (preserves historical data)
+// ✓ User ID referenced (get current user info if needed)
+```
+
+---
+
+## Schema Validation
+
+### Creating Collections with Validators
+
+MongoDB allows you to enforce schema validation rules when creating collections, ensuring data integrity.
+
+**Syntax:**
+
+```javascript
+db.createCollection("collection_name", {
+  validator: {
+    $jsonSchema: {
+      // validation rules
+    },
+  },
+});
+```
+
+```
+┌────────────────────────────────────────────────────┐
+│          Schema Validation in MongoDB              │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Purpose:                                          │
+│  Enforce data structure and type constraints       │
+│                                                    │
+│  Benefits:                                         │
+│  ✓ Data consistency                                │
+│  ✓ Type safety                                     │
+│  ✓ Field requirements                              │
+│  ✓ Value constraints                               │
+│                                                    │
+│  When to Use:                                      │
+│  • Production applications                         │
+│  • Critical data collections                       │
+│  • Multi-developer teams                           │
+│  • API-driven applications                         │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Validation Rules
+
+#### Basic Data Types
+
+| BSON Type    | Description       | Example               |
+| ------------ | ----------------- | --------------------- |
+| `"string"`   | String value      | "John Doe"            |
+| `"int"`      | 32-bit integer    | 25                    |
+| `"long"`     | 64-bit integer    | 9876543210            |
+| `"double"`   | Floating point    | 3.14                  |
+| `"bool"`     | Boolean           | true/false            |
+| `"date"`     | Date object       | ISODate("2024-01-15") |
+| `"object"`   | Embedded document | { city: "Mumbai" }    |
+| `"array"`    | Array             | ["a", "b", "c"]       |
+| `"objectId"` | MongoDB ObjectId  | ObjectId("...")       |
+
+---
+
+### Basic Schema Validation Example
+
+```javascript
+// Example: User information schema
+{
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["javascript", "python"]
+}
+
+// Creating collection with validation
+db.createCollection("info", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "age", "isMarried", "skills"],
+      properties: {
+        name: {
+          bsonType: "string",
+          description: "name is required and should be a string"
+        },
+        age: {
+          bsonType: "int",
+          description: "age is required and should be a number"
+        },
+        isMarried: {
+          bsonType: "bool",
+          description: "isMarried is required and should be boolean"
+        },
+        skills: {
+          bsonType: "array",
+          description: "skills is required and should be an array",
+          items: {
+            bsonType: "string"
+          }
+        }
+      }
+    }
+  }
+});
+```
+
+**Visual Representation:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          Validation Rules Breakdown                │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  bsonType: "object"  ← Document is an object       │
+│                                                    │
+│  required: ["name", "age", ...]                    │
+│  ↑ These fields MUST be present                    │
+│                                                    │
+│  properties: {                                     │
+│    name: {                                         │
+│      bsonType: "string"  ← Must be string          │
+│      description: "..."  ← Error message           │
+│    },                                              │
+│    age: {                                          │
+│      bsonType: "int"     ← Must be integer         │
+│    },                                              │
+│    skills: {                                       │
+│      bsonType: "array"   ← Must be array           │
+│      items: {                                      │
+│        bsonType: "string" ← Array items: strings   │
+│      }                                             │
+│    }                                               │
+│  }                                                 │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Testing Validation:**
+
+```javascript
+// ✅ VALID - Passes validation
+db.info.insertOne({
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["javascript", "python"],
+});
+// Success!
+
+// ✅ VALID - Extra field allowed (not in required)
+db.info.insertOne({
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["javascript"],
+  email: "abc@example.com", // Extra field OK
+});
+// Success!
+
+// ❌ INVALID - Missing required field
+db.info.insertOne({
+  name: "abc",
+  age: 34,
+  // Missing: isMarried, skills
+});
+// Error: Document failed validation
+
+// ❌ INVALID - Wrong data type
+db.info.insertOne({
+  name: "abc",
+  age: "34", // String instead of int
+  isMarried: false,
+  skills: ["javascript"],
+});
+// Error: age should be int
+
+// ❌ INVALID - Wrong array item type
+db.info.insertOne({
+  name: "abc",
+  age: 34,
+  isMarried: false,
+  skills: ["javascript", 123], // 123 is not a string
+});
+// Error: skills array items must be strings
+```
+
+---
+
+### Key Validation Concepts
+
+**Important Rules:**
+
+```
+┌────────────────────────────────────────────────────┐
+│      Validation Rules - Key Concepts               │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  1. FOR OBJECTS → Use "properties"                 │
+│     Define fields inside the object                │
+│                                                    │
+│     properties: {                                  │
+│       name: { bsonType: "string" },                │
+│       age: { bsonType: "int" }                     │
+│     }                                              │
+│                                                    │
+│  2. FOR ARRAYS → Use "items"                       │
+│     Define structure of array elements             │
+│                                                    │
+│     skills: {                                      │
+│       bsonType: "array",                           │
+│       items: {                                     │
+│         bsonType: "string"                         │
+│       }                                            │
+│     }                                              │
+│                                                    │
+│  3. REQUIRED FIELDS                                │
+│     List in "required" array                       │
+│                                                    │
+│     required: ["name", "age"]                      │
+│                                                    │
+│  4. OPTIONAL FIELDS                                │
+│     Don't include in "required" array              │
+│     Define in properties only                      │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Complex Schema Examples
+
+#### Example 1: Nested Object Validation
+
+```javascript
+// Schema with nested address object
+{
+  age: 25,
+  address: {
+    city: "Mumbai",
+    pincode: "400001"
+  },
+  skills: [
+    { game: "chess", level: 5 },
+    { game: "cricket", level: 8 }
+  ]
+}
+
+// Creating collection with nested validation
+db.createCollection("info2", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["age", "address", "skills"],
+      properties: {
+        age: {
+          bsonType: "int",
+          description: "age is required and should be a number"
+        },
+
+        // Nested object validation
+        address: {
+          bsonType: "object",
+          required: ["city", "pincode"],
+          properties: {
+            city: {
+              bsonType: "string",
+              description: "city is required and should be a string"
+            },
+            pincode: {
+              bsonType: "string",
+              description: "pincode is required and should be a string"
+            }
+          }
+        },
+
+        // Array of objects validation
+        skills: {
+          bsonType: "array",
+          items: {
+            bsonType: "object",
+            required: ["game", "level"],
+            properties: {
+              game: {
+                bsonType: "string"
+              },
+              level: {
+                bsonType: "int",
+                minimum: 1,
+                maximum: 10
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+});
+```
+
+**Visual Structure:**
+
+```
+┌────────────────────────────────────────────────────┐
+│      Nested Validation Structure                   │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Document (object)                                 │
+│  ├─ age (int)                                      │
+│  ├─ address (object)                               │
+│  │   ├─ city (string)                              │
+│  │   └─ pincode (string)                           │
+│  └─ skills (array)                                 │
+│      └─ items (object)                             │
+│          ├─ game (string)                          │
+│          └─ level (int, 1-10)                      │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Testing:**
+
+```javascript
+// ✅ VALID
+db.info2.insertOne({
+  age: 25,
+  address: {
+    city: "Mumbai",
+    pincode: "400001",
+  },
+  skills: [
+    { game: "chess", level: 5 },
+    { game: "cricket", level: 8 },
+  ],
+});
+
+// ❌ INVALID - Missing nested field
+db.info2.insertOne({
+  age: 25,
+  address: {
+    city: "Mumbai",
+    // Missing: pincode
+  },
+  skills: [],
+});
+// Error: address.pincode is required
+
+// ❌ INVALID - Array item wrong type
+db.info2.insertOne({
+  age: 25,
+  address: {
+    city: "Mumbai",
+    pincode: "400001",
+  },
+  skills: [
+    { game: "chess", level: "five" }, // level should be int
+  ],
+});
+// Error: level should be int
+```
+
+---
+
+#### Example 2: Advanced Validation with Constraints
+
+```javascript
+db.createCollection("users", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["username", "email", "age", "role"],
+      properties: {
+        username: {
+          bsonType: "string",
+          minLength: 3,
+          maxLength: 20,
+          description: "Username must be 3-20 characters",
+        },
+        email: {
+          bsonType: "string",
+          pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$",
+          description: "Must be a valid email address",
+        },
+        age: {
+          bsonType: "int",
+          minimum: 18,
+          maximum: 100,
+          description: "Age must be between 18 and 100",
+        },
+        role: {
+          enum: ["admin", "user", "moderator"],
+          description: "Role must be one of: admin, user, moderator",
+        },
+        salary: {
+          bsonType: ["double", "int"], // Can be either
+          minimum: 0,
+          description: "Salary must be positive number",
+        },
+        address: {
+          bsonType: "object",
+          properties: {
+            city: {
+              bsonType: "string",
+            },
+            country: {
+              bsonType: "string",
+              enum: ["India", "USA", "UK", "Canada"],
+            },
+            pincode: {
+              bsonType: "string",
+              pattern: "^[0-9]{6}$", // 6 digits
+              description: "Pincode must be 6 digits",
+            },
+          },
+        },
+      },
+    },
+  },
+});
+```
+
+**Validation Constraints:**
+
+```
+┌────────────────────────────────────────────────────┐
+│      Advanced Validation Constraints               │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  minLength / maxLength                             │
+│  ↓ String length constraints                       │
+│  username: { minLength: 3, maxLength: 20 }         │
+│                                                    │
+│  minimum / maximum                                 │
+│  ↓ Numeric value constraints                       │
+│  age: { minimum: 18, maximum: 100 }                │
+│                                                    │
+│  pattern                                           │
+│  ↓ Regex validation                                │
+│  email: { pattern: "^[a-z]+@[a-z]+\\.[a-z]{2,}$" } │
+│                                                    │
+│  enum                                              │
+│  ↓ Allowed values list                             │
+│  role: { enum: ["admin", "user", "moderator"] }    │
+│                                                    │
+│  Multiple types                                    │
+│  ↓ Field can be one of multiple types              │
+│  salary: { bsonType: ["double", "int"] }           │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### Example 3: Product Catalog Schema
+
+```javascript
+db.createCollection("products", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "price", "category", "inStock"],
+      properties: {
+        name: {
+          bsonType: "string",
+          minLength: 1,
+          maxLength: 100,
+        },
+        description: {
+          bsonType: "string",
+          maxLength: 500,
+        },
+        price: {
+          bsonType: "double",
+          minimum: 0,
+          exclusiveMinimum: true, // Price must be > 0, not = 0
+        },
+        category: {
+          enum: ["Electronics", "Clothing", "Books", "Home", "Sports"],
+        },
+        inStock: {
+          bsonType: "bool",
+        },
+        quantity: {
+          bsonType: "int",
+          minimum: 0,
+        },
+        tags: {
+          bsonType: "array",
+          uniqueItems: true, // No duplicate tags
+          items: {
+            bsonType: "string",
+          },
+        },
+        specifications: {
+          bsonType: "object",
+          additionalProperties: true, // Allow any nested properties
+        },
+        ratings: {
+          bsonType: "object",
+          required: ["average", "count"],
+          properties: {
+            average: {
+              bsonType: "double",
+              minimum: 0,
+              maximum: 5,
+            },
+            count: {
+              bsonType: "int",
+              minimum: 0,
+            },
+          },
+        },
+      },
+    },
+  },
+});
+```
+
+**Testing:**
+
+```javascript
+// ✅ VALID
+db.products.insertOne({
+  name: "Laptop",
+  description: "High-performance laptop",
+  price: 55000.0,
+  category: "Electronics",
+  inStock: true,
+  quantity: 25,
+  tags: ["computer", "electronics", "work"],
+  specifications: {
+    brand: "Dell",
+    processor: "Intel i7",
+    ram: "16GB",
+  },
+  ratings: {
+    average: 4.5,
+    count: 120,
+  },
+});
+
+// ❌ INVALID - Price is 0
+db.products.insertOne({
+  name: "Test Product",
+  price: 0, // exclusiveMinimum: true means > 0
+  category: "Electronics",
+  inStock: true,
+});
+// Error: price must be greater than 0
+
+// ❌ INVALID - Category not in enum
+db.products.insertOne({
+  name: "Test Product",
+  price: 100,
+  category: "Invalid Category",
+  inStock: true,
+});
+// Error: category must be one of allowed values
+```
+
+---
+
+### Validation Actions and Levels
+
+```javascript
+// Default: error (reject invalid documents)
+db.createCollection("col1", {
+  validator: {
+    /* rules */
+  },
+  validationAction: "error", // Default
+});
+
+// Warn: allow but log warning
+db.createCollection("col2", {
+  validator: {
+    /* rules */
+  },
+  validationAction: "warn", // Just warn, don't reject
+});
+
+// Validation levels
+db.createCollection("col3", {
+  validator: {
+    /* rules */
+  },
+  validationLevel: "strict", // Validate all inserts and updates (default)
+});
+
+db.createCollection("col4", {
+  validator: {
+    /* rules */
+  },
+  validationLevel: "moderate", // Only validate new docs, not updates
+});
+```
+
+---
+
+## MongoDB Query Methods
+
+### find() Method
+
+**Syntax:**
+
+```javascript
+db.collection_name.find(filter, projection, options);
+```
+
+**Parameters:**
+
+1. **filter**: Query criteria (what to find)
+2. **projection**: Which fields to return
+3. **options**: Sort, limit, skip, etc.
+
+```
+┌────────────────────────────────────────────────────┐
+│          find() Method Components                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  db.collection.find()                              │
+│                 ↓                                  │
+│       ┌─────────┴──────────┐                      │
+│       │                    │                      │
+│    filter            projection                    │
+│    (what?)            (which?)                     │
+│       │                    │                      │
+│  { age: 25 }        { name: 1, _id: 0 }           │
+│                                                    │
+│  Chained Methods:                                  │
+│  .sort()   - Order results                         │
+│  .limit()  - Limit number of results               │
+│  .skip()   - Skip N results                        │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Sorting Documents
+
+**Syntax:**
+
+```javascript
+db.collection.find().sort({ field: order });
+```
+
+**Sort Order:**
+
+- `1` = Ascending order (A-Z, 0-9, oldest-newest)
+- `-1` = Descending order (Z-A, 9-0, newest-oldest)
+
+**Examples:**
+
+```javascript
+// Sort by name ascending (A to Z)
+db.emp.find({}, { name: 1, _id: 0 }).sort({ name: 1 });
+// Output: Alice, Bob, Charlie, David...
+
+// Sort by name descending (Z to A)
+db.emp.find({}, { name: 1, _id: 0 }).sort({ name: -1 });
+// Output: Zara, Yash, Xavier, William...
+
+// Sort by salary ascending (lowest first)
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: 1 });
+// Output: salary: 15000, 20000, 25000...
+
+// Sort by salary descending (highest first)
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 });
+// Output: salary: 80000, 75000, 60000...
+
+// Multi-field sort: department (asc), then salary (desc)
+db.emp.find().sort({ deptNo: 1, salary: -1 });
+// Groups by department, within each dept highest salary first
+```
+
+**Visual Representation:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          Sorting Examples                          │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Original Data:                                    │
+│  { name: "Charlie", salary: 50000 }                │
+│  { name: "Alice", salary: 60000 }                  │
+│  { name: "Bob", salary: 40000 }                    │
+│                                                    │
+│  .sort({ name: 1 })  ← Ascending                   │
+│  ↓                                                 │
+│  { name: "Alice", salary: 60000 }                  │
+│  { name: "Bob", salary: 40000 }                    │
+│  { name: "Charlie", salary: 50000 }                │
+│                                                    │
+│  .sort({ salary: -1 })  ← Descending               │
+│  ↓                                                 │
+│  { name: "Alice", salary: 60000 }                  │
+│  { name: "Charlie", salary: 50000 }                │
+│  { name: "Bob", salary: 40000 }                    │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Limiting Results
+
+**Syntax:**
+
+```javascript
+db.collection.find().limit(n);
+```
+
+**Purpose**: Return only the first `n` documents
+
+**Examples:**
+
+```javascript
+// Get top 1 employee by salary
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(1);
+// Output: { name: "John", salary: 80000 }
+
+// Get top 5 highest salaries
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(5);
+// Returns 5 documents with highest salaries
+
+// Get lowest salary employee
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: 1 }).limit(1);
+// Output: { name: "Alice", salary: 15000 }
+```
+
+**Visual Flow:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          limit() Operation Flow                    │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Step 1: Find all employees                        │
+│  [doc1, doc2, doc3, doc4, doc5, doc6, doc7, ...]   │
+│                                                    │
+│  Step 2: Sort by salary descending                 │
+│  [80K, 75K, 60K, 50K, 40K, 30K, 20K, ...]          │
+│                                                    │
+│  Step 3: limit(3)                                  │
+│  [80K, 75K, 60K] ← Take first 3                    │
+│                                                    │
+│  Result: Top 3 highest salaries                    │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Skipping Documents
+
+**Syntax:**
+
+```javascript
+db.collection.find().skip(n);
+```
+
+**Purpose**: Skip the first `n` documents
+
+**Examples:**
+
+```javascript
+// Get second highest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(1)
+  .limit(1);
+// Skips highest, returns second highest
+
+// Get third lowest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: 1 })
+  .skip(2)
+  .limit(1);
+// Skips 2 lowest, returns third lowest
+
+// Pagination: Page 2, 10 items per page
+db.emp
+  .find()
+  .skip(10) // Skip first page (10 items)
+  .limit(10); // Get second page (next 10 items)
+
+// Pagination: Page 3, 10 items per page
+db.emp
+  .find()
+  .skip(20) // Skip first 2 pages
+  .limit(10); // Get third page
+```
+
+**Visual Flow:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          skip() Operation Flow                     │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Original sorted data:                             │
+│  [1st, 2nd, 3rd, 4th, 5th, 6th, 7th, ...]          │
+│                                                    │
+│  .skip(2).limit(1)                                 │
+│  [1st, 2nd, 3rd ✓, 4th, 5th, ...]                  │
+│         ↑    ↑    ↑                                │
+│       skip skip take                               │
+│                                                    │
+│  Result: 3rd document                              │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Query Method Chaining
+
+**Order of Operations:**
+
+```javascript
+db.collection
+  .find(filter, projection) // 1. Filter and project
+  .sort(sortCriteria) // 2. Sort results
+  .skip(n) // 3. Skip N documents
+  .limit(m); // 4. Limit to M documents
+```
+
+**Important**: Order matters! MongoDB executes in this order:
+
+1. Find (filter)
+2. Sort
+3. Skip
+4. Limit
+
+**Common Patterns:**
+
+```javascript
+// ===== Pattern 1: Top N by field =====
+// Display employee with highest salary
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(1);
+
+// Display employee with lowest salary
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: 1 }).limit(1);
+
+// ===== Pattern 2: Nth highest/lowest =====
+// Second highest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(1)
+  .limit(1);
+
+// Third lowest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: 1 })
+  .skip(2)
+  .limit(1);
+
+// Fifth highest salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(4)
+  .limit(1);
+
+// ===== Pattern 3: Pagination =====
+// Page 1 (items 1-10)
+db.products.find().sort({ _id: 1 }).limit(10);
+
+// Page 2 (items 11-20)
+db.products.find().sort({ _id: 1 }).skip(10).limit(10);
+
+// General pagination formula:
+// Page N, pageSize items:
+let page = 3;
+let pageSize = 10;
+db.products
+  .find()
+  .skip((page - 1) * pageSize)
+  .limit(pageSize);
+
+// ===== Pattern 4: Range queries =====
+// Employees 6th to 10th by salary
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(5)
+  .limit(5);
+```
+
+---
+
+### Query Execution Order Example
+
+```javascript
+// Let's say we have 100 employees
+// We want 11th-15th highest salaries
+
+db.emp
+  .find(
+    {}, // 1. Find all (100 docs)
+    { name: 1, salary: 1, _id: 0 }
+  )
+  .sort({ salary: -1 }) // 2. Sort descending
+  .skip(10) // 3. Skip first 10
+  .limit(5); // 4. Take next 5
+
+// Execution steps:
+// 1. Fetch all 100 employees
+// 2. Sort them by salary (highest first)
+// 3. Skip first 10 (ranks 1-10)
+// 4. Return next 5 (ranks 11-15)
+```
+
+**Visual Execution:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          Query Execution Order                     │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  find()                                            │
+│  ↓                                                 │
+│  [doc1, doc2, doc3, ..., doc100]                   │
+│                                                    │
+│  sort({ salary: -1 })                              │
+│  ↓                                                 │
+│  [80K, 75K, 70K, 65K, ..., 15K]                    │
+│                                                    │
+│  skip(10)                                          │
+│  ↓                                                 │
+│  [55K, 53K, 52K, 50K, 48K, ..., 15K]               │
+│   ↑ Starts here (11th position)                    │
+│                                                    │
+│  limit(5)                                          │
+│  ↓                                                 │
+│  [55K, 53K, 52K, 50K, 48K]                         │
+│   ↑ Takes only 5 documents                         │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Practical Query Examples
+
+```javascript
+// ===== Example 1: Display all employee names =====
+db.emp.find({}, { name: 1, _id: 0 });
+
+// ===== Example 2: Display employee names sorted A-Z =====
+db.emp.find({}, { name: 1, _id: 0 }).sort({ name: 1 });
+
+// ===== Example 3: Display employee names sorted Z-A =====
+db.emp.find({}, { name: 1, _id: 0 }).sort({ name: -1 });
+
+// ===== Example 4: Employee with max salary =====
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(1);
+
+// ===== Example 5: Employee with lowest salary =====
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: 1 }).limit(1);
+
+// ===== Example 6: Second highest salary =====
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: -1 })
+  .skip(1)
+  .limit(1);
+
+// ===== Example 7: Third lowest salary =====
+db.emp
+  .find({}, { name: 1, salary: 1, _id: 0 })
+  .sort({ salary: 1 })
+  .skip(2)
+  .limit(1);
+
+// ===== Example 8: Top 5 highest salaries =====
+db.emp.find({}, { name: 1, salary: 1, _id: 0 }).sort({ salary: -1 }).limit(5);
+
+// ===== Example 9: 5 oldest employees =====
+db.emp.find({}, { name: 1, age: 1, _id: 0 }).sort({ age: -1 }).limit(5);
+
+// ===== Example 10: 10th to 20th employees by hire date =====
+db.emp
+  .find({}, { name: 1, hireDate: 1, _id: 0 })
+  .sort({ hireDate: 1 })
+  .skip(9)
+  .limit(11);
+```
+
+---
+
+## MongoDB Aggregation Framework
+
+### What is Aggregation?
+
+**Aggregation in MongoDB** is a powerful framework for data processing and transformation using a pipeline-based approach.
+
+```
+┌────────────────────────────────────────────────────┐
+│          What is Aggregation?                      │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Definition:                                       │
+│  Data processing pipeline for transforming and     │
+│  analyzing documents                               │
+│                                                    │
+│  Think of it as:                                   │
+│  • Assembly line for data                          │
+│  • Each stage transforms data                      │
+│  • Output of one stage → Input of next            │
+│                                                    │
+│  Similar to SQL:                                   │
+│  • GROUP BY → $group                               │
+│  • WHERE → $match                                  │
+│  • SELECT → $project                               │
+│  • JOIN → $lookup                                  │
+│  • ORDER BY → $sort                                │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Key Concept:**
+
+> Instead of simply fetching documents, aggregation allows you to push documents through a series of stages to generate meaningful insights or reshaped data.
+
+---
+
+### Aggregation vs find()
+
+```
+┌──────────────────────────────────────────────────────────┐
+│          find() vs aggregate()                           │
+├──────────────────────────────────────────────────────────┤
+│                                                          │
+│  find()                      aggregate()                 │
+│  ─────                       ──────────                  │
+│  • Simple queries            • Complex transformations   │
+│  • Filter + Project          • Multi-stage pipeline      │
+│  • Sort + Limit              • Grouping & calculations   │
+│  • Returns documents         • Can reshape data          │
+│                              • Join collections          │
+│                                                          │
+│  When to use find():         When to use aggregate():    │
+│  • Fetch documents           • Count by group            │
+│  • Simple filtering          • Calculate sum/avg         │
+│  • Project fields            • Join collections          │
+│                              • Complex transformations    │
+│                                                          │
+└──────────────────────────────────────────────────────────┘
+```
+
+---
+
+### Aggregation Pipeline
+
+**Syntax:**
+
+```javascript
+db.collection_name.aggregate([
+  { stage1 },
+  { stage2 },
+  { stage3 },
+  // ... more stages
+]);
+```
+
+**Pipeline Concept:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          Aggregation Pipeline Flow                 │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Collection (100 docs)                             │
+│        ↓                                           │
+│  ┌───────────┐                                     │
+│  │  Stage 1  │ ($match: filter)                    │
+│  └─────┬─────┘                                     │
+│        ↓ (50 docs)                                 │
+│  ┌───────────┐                                     │
+│  │  Stage 2  │ ($project: select fields)           │
+│  └─────┬─────┘                                     │
+│        ↓ (50 docs with selected fields)            │
+│  ┌───────────┐                                     │
+│  │  Stage 3  │ ($group: aggregate)                 │
+│  └─────┬─────┘                                     │
+│        ↓ (5 groups)                                │
+│  ┌───────────┐                                     │
+│  │  Stage 4  │ ($sort: order results)              │
+│  └─────┬─────┘                                     │
+│        ↓                                           │
+│   Final Output (5 sorted groups)                   │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+**Important Rules:**
+
+1. **Input to Stage 1**: Collection documents
+2. **Input to Stage 2**: Output of Stage 1
+3. **Input to Stage 3**: Output of Stage 2
+4. **Each stage**: Contains only ONE aggregation operator
+5. **Non-destructive**: Does NOT modify original data
+
+---
+
+### Aggregation Stages
+
+#### $match Stage
+
+**Purpose**: Filter documents (like `find()`)
+
+**Syntax:**
+
+```javascript
+{
+  $match: {
+    conditions;
+  }
+}
+```
+
+**Examples:**
+
+```javascript
+// Filter employees who are clerks
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" },
+  },
+]);
+
+// Filter salary > 50000
+db.emp.aggregate([
+  {
+    $match: { salary: { $gt: 50000 } },
+  },
+]);
+
+// Multiple conditions
+db.emp.aggregate([
+  {
+    $match: {
+      job: "clerk",
+      salary: { $gt: 20000 },
+    },
+  },
+]);
+
+// Complex conditions with $or
+db.emp.aggregate([
+  {
+    $match: {
+      $or: [{ deptNo: 10 }, { deptNo: 20 }],
+    },
+  },
+]);
+```
+
+**Visual:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          $match Stage                              │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Input: All documents (100)                        │
+│  ┌──────────────────────────────────────────┐    │
+│  │ { name: "Alice", job: "manager" }        │    │
+│  │ { name: "Bob", job: "clerk" }      ✓     │    │
+│  │ { name: "Charlie", job: "analyst" }      │    │
+│  │ { name: "David", job: "clerk" }    ✓     │    │
+│  │ ...                                      │    │
+│  └──────────────────────────────────────────┘    │
+│                                                    │
+│  $match: { job: "clerk" }                          │
+│  ↓                                                 │
+│  Output: Filtered documents (20)                   │
+│  ┌──────────────────────────────────────────┐    │
+│  │ { name: "Bob", job: "clerk" }            │    │
+│  │ { name: "David", job: "clerk" }          │    │
+│  │ ...                                      │    │
+│  └──────────────────────────────────────────┘    │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### $project Stage
+
+**Purpose**:
+
+- Show/hide fields (1 = show, 0 = hide)
+- Create new fields (aliasing)
+- Transform field values
+- Perform calculations
+
+**Syntax:**
+
+```javascript
+{
+  $project: {
+    field1: 1,  // Include field1
+    field2: 0,  // Exclude field2
+    newField: "$oldField",  // Alias
+    calculated: { $expression }  // Calculation
+  }
+}
+```
+
+**Examples:**
+
+```javascript
+// Show only name and hire date
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      hireDate: 1,
+      _id: 0,
+    },
+  },
+]);
+
+// Create alias for field
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" },
+  },
+  {
+    $project: {
+      "user name": "$name", // Alias: name → "user name"
+      _id: 0,
+    },
+  },
+]);
+
+// Calculate new field: salary > 2000?
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      salary: 1,
+      isSalaryHigh: { $gt: ["$salary", 2000] }, // Boolean field
+      _id: 0,
+    },
+  },
+]);
+
+// Multiple calculations
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      salary: 1,
+      annualSalary: { $multiply: ["$salary", 12] },
+      salaryCategory: {
+        $cond: {
+          if: { $gte: ["$salary", 50000] },
+          then: "High",
+          else: "Normal",
+        },
+      },
+      _id: 0,
+    },
+  },
+]);
+
+// String operations
+db.emp.aggregate([
+  {
+    $project: {
+      fullName: { $toUpper: "$name" }, // Uppercase
+      emailDomain: { $substr: ["$email", 10, -1] }, // Substring
+      nameLength: { $strLenCP: "$name" }, // String length
+      _id: 0,
+    },
+  },
+]);
+```
+
+**Visual:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          $project Stage                            │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Input:                                            │
+│  { _id: 1, name: "Alice", salary: 50000, age: 30 } │
+│                                                    │
+│  $project: { name: 1, salary: 1, _id: 0 }          │
+│  ↓                                                 │
+│  Output:                                           │
+│  { name: "Alice", salary: 50000 }                  │
+│                                                    │
+│  ─────────────────────────────────────────────────│
+│                                                    │
+│  Input:                                            │
+│  { name: "Bob", salary: 30000 }                    │
+│                                                    │
+│  $project: {                                       │
+│    username: "$name",                              │
+│    isSalHigh: { $gt: ["$salary", 40000] }          │
+│  }                                                 │
+│  ↓                                                 │
+│  Output:                                           │
+│  { username: "Bob", isSalHigh: false }             │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+#### $group Stage
+
+**Purpose**:
+
+- Group documents by field value
+- Perform aggregate calculations
+- Count, sum, average, min, max
+
+**Syntax:**
+
+```javascript
+{
+  $group: {
+    _id: "$fieldToGroupBy",  // Grouping field
+    newField: { $aggregateOperator: "$field" }
+  }
+}
+```
+
+**Aggregate Operators (only in $group):**
+
+- `$sum` - Sum values or count documents
+- `$avg` - Calculate average
+- `$min` - Find minimum value
+- `$max` - Find maximum value
+- `$first` - First value in group
+- `$last` - Last value in group
+- `$push` - Create array of values
+- `$addToSet` - Create array of unique values
+
+**Examples:**
+
+```javascript
+// ===== Example 1: Count documents by group =====
+// Count employees in each department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo", // Group by department
+      count: { $sum: 1 }, // Count: add 1 for each document
+    },
+  },
+]);
+// Output:
+// { _id: 10, count: 5 }
+// { _id: 20, count: 8 }
+// { _id: 30, count: 7 }
+
+// ===== Example 2: Sum values in group =====
+// Total salary per department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      totalSalary: { $sum: "$salary" }, // Sum of salaries
+    },
+  },
+]);
+
+// ===== Example 3: Multiple aggregate functions =====
+// Department statistics
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      numberOfEmp: { $sum: 1 },
+      maxSalary: { $max: "$salary" },
+      minSalary: { $min: "$salary" },
+      avgSalary: { $avg: "$salary" },
+      totalSalary: { $sum: "$salary" },
+      maxAge: { $max: "$age" },
+      minAge: { $min: "$age" },
+    },
+  },
+]);
+// Output:
+// {
+//   _id: 10,
+//   numberOfEmp: 5,
+//   maxSalary: 80000,
+//   minSalary: 30000,
+//   avgSalary: 55000,
+//   totalSalary: 275000,
+//   maxAge: 45,
+//   minAge: 28
+// }
+
+// ===== Example 4: Rename _id field =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      numberOfEmp: { $sum: 1 },
+      minSalary: { $min: "$salary" },
+      maxSalary: { $max: "$salary" },
+    },
+  },
+  {
+    $project: {
+      departmentNumber: "$_id", // Rename _id
+      _id: 0,
+      numberOfEmp: 1,
+      minSalary: 1,
+      maxSalary: 1,
+    },
+  },
+]);
+
+// ===== Example 5: Group by multiple fields =====
+// Count by department and job
+db.emp.aggregate([
+  {
+    $group: {
+      _id: {
+        dept: "$deptNo",
+        job: "$job",
+      },
+      count: { $sum: 1 },
+    },
+  },
+]);
+// Output:
+// { _id: { dept: 10, job: "manager" }, count: 2 }
+// { _id: { dept: 10, job: "clerk" }, count: 3 }
+// { _id: { dept: 20, job: "analyst" }, count: 5 }
+
+// ===== Example 6: Count by city =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      employeeCount: { $sum: 1 },
+    },
+  },
+]);
+
+// ===== Example 7: Collect values in array =====
+// All employee names per department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      employeeNames: { $push: "$name" }, // Array of names
+    },
+  },
+]);
+// Output:
+// { _id: 10, employeeNames: ["Alice", "Bob", "Charlie"] }
+
+// ===== Example 8: Unique values =====
+// Unique job titles per department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      jobs: { $addToSet: "$job" }, // Unique jobs only
+    },
+  },
+]);
+```
+
+**Visual Representation:**
+
+```
+┌────────────────────────────────────────────────────┐
+│          $group Stage Example                      │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  Input Documents:                                  │
+│  { name: "Alice", deptNo: 10, salary: 50000 }      │
+│  { name: "Bob", deptNo: 10, salary: 60000 }        │
+│  { name: "Charlie", deptNo: 20, salary: 55000 }    │
+│  { name: "David", deptNo: 20, salary: 45000 }      │
+│                                                    │
+│  $group: {                                         │
+│    _id: "$deptNo",                                 │
+│    count: { $sum: 1 },                             │
+│    totalSalary: { $sum: "$salary" }                │
+│  }                                                 │
+│  ↓                                                 │
+│  Grouping Process:                                 │
+│  ┌─────────────┐    ┌─────────────┐              │
+│  │ deptNo: 10  │    │ deptNo: 20  │              │
+│  │ Alice       │    │ Charlie     │              │
+│  │ Bob         │    │ David       │              │
+│  └─────────────┘    └─────────────┘              │
+│        ↓                   ↓                       │
+│  { _id: 10,          { _id: 20,                    │
+│    count: 2,           count: 2,                   │
+│    totalSalary:        totalSalary:                │
+│    110000 }            100000 }                    │
+│                                                    │
+│  Output: 2 grouped documents                       │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+### Practical Aggregation Examples
+
+```javascript
+// ===== Example 1: Find all clerks =====
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" },
+  },
+]);
+
+// ===== Example 2: Clerk names and hire dates =====
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" },
+  },
+  {
+    $project: {
+      name: 1,
+      hireDate: 1,
+      _id: 0,
+    },
+  },
+]);
+
+// ===== Example 3: Order matters in pipeline =====
+// Method A: Match first, then project (efficient)
+db.emp.aggregate([
+  { $match: { job: "clerk" } }, // Filter 100 → 20 docs
+  { $project: { name: 1, _id: 0 } }, // Project 20 docs
+]);
+
+// Method B: Project first, then match (less efficient)
+db.emp.aggregate([
+  { $project: { name: 1, job: 1, _id: 0 } }, // Project all 100
+  { $match: { job: "clerk" } }, // Then filter
+]);
+// Both give same result, but A is faster
+
+// ===== Example 4: Employees with salary > 2000 =====
+db.emp.aggregate([
+  {
+    $match: {
+      salary: { $gt: 2000 },
+    },
+  },
+]);
+
+// ===== Example 5: Department 10 or 20 employees =====
+db.emp.aggregate([
+  {
+    $match: {
+      deptNo: { $in: [10, 20] },
+    },
+  },
+]);
+
+// ===== Example 6: Clerk usernames =====
+db.emp.aggregate([
+  { $match: { job: "clerk" } },
+  {
+    $project: {
+      "user name": "$name",
+      _id: 0,
+    },
+  },
+]);
+
+// ===== Example 7: High salary indicator =====
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      salary: 1,
+      isSalaryHigh: { $gt: ["$salary", 2000] },
+      _id: 0,
+    },
+  },
+]);
+
+// ===== Example 8: Department employee count =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      numberOfEmp: { $sum: 1 },
+      maxSalary: { $max: "$salary" },
+      minSalary: { $min: "$salary" },
+      maxAge: { $max: "$age" },
+      minAge: { $min: "$age" },
+      totalSalary: { $sum: "$salary" },
+    },
+  },
+  {
+    $project: {
+      departmentNumber: "$_id",
+      _id: 0,
+      numberOfEmp: 1,
+      minAge: 1,
+      maxAge: 1,
+      minSalary: 1,
+      maxSalary: 1,
+      totalSalary: 1,
+    },
+  },
+]);
+
+// ===== Example 9: Employee count by city =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      employeeCount: { $sum: 1 },
+    },
+  },
+]);
+
+// ===== Example 10: Average salary by job title =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$job",
+      avgSalary: { $avg: "$salary" },
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $sort: { avgSalary: -1 }, // Highest avg salary first
+  },
+]);
+
+// ===== Example 11: Department with highest total salary =====
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$deptNo",
+      totalSalary: { $sum: "$salary" },
+    },
+  },
+  {
+    $sort: { totalSalary: -1 },
+  },
+  {
+    $limit: 1,
+  },
+]);
+
+// ===== Example 12: Complex multi-stage pipeline =====
+// Clerks in dept 10 or 20, show stats
+db.emp.aggregate([
+  {
+    $match: {
+      job: "clerk",
+      deptNo: { $in: [10, 20] },
+    },
+  },
+  {
+    $group: {
+      _id: "$deptNo",
+      clerkCount: { $sum: 1 },
+      avgSalary: { $avg: "$salary" },
+      totalSalary: { $sum: "$salary" },
+    },
+  },
+  {
+    $project: {
+      department: "$_id",
+      _id: 0,
+      clerkCount: 1,
+      avgSalary: { $round: ["$avgSalary", 2] }, // Round to 2 decimals
+      totalSalary: 1,
+    },
+  },
+  {
+    $sort: { clerkCount: -1 },
+  },
+]);
+```
+
+---
+
+## Aggregation Pipeline Stages Summary
+
+### Quick Reference Table
+
+| Stage        | Purpose                 | Example                                             |
+| ------------ | ----------------------- | --------------------------------------------------- |
+| `$match`     | Filter documents        | `{ $match: { age: { $gt: 25 } } }`                  |
+| `$project`   | Select/transform fields | `{ $project: { name: 1, _id: 0 } }`                 |
+| `$group`     | Group and aggregate     | `{ $group: { _id: "$dept", count: { $sum: 1 } } }`  |
+| `$sort`      | Sort documents          | `{ $sort: { salary: -1 } }`                         |
+| `$limit`     | Limit results           | `{ $limit: 10 }`                                    |
+| `$skip`      | Skip documents          | `{ $skip: 5 }`                                      |
+| `$unwind`    | Deconstruct arrays      | `{ $unwind: "$tags" }`                              |
+| `$lookup`    | Join collections        | `{ $lookup: { from: "orders", ... } }`              |
+| `$addFields` | Add new fields          | `{ $addFields: { total: { $sum: ["$a", "$b"] } } }` |
+| `$count`     | Count documents         | `{ $count: "totalDocs" }`                           |
+
+---
+
+## Best Practices
+
+### Aggregation Best Practices
+
+```
+┌────────────────────────────────────────────────────┐
+│      Aggregation Best Practices                    │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  ✅ DO:                                             │
+│  • Use $match early in pipeline                    │
+│    (reduces documents to process)                  │
+│                                                    │
+│  • Use indexes for $match and $sort                │
+│    (improves performance significantly)            │
+│                                                    │
+│  • Project only needed fields                      │
+│    (reduces data transfer)                         │
+│                                                    │
+│  • Use allowDiskUse for large datasets             │
+│    db.col.aggregate([...], {allowDiskUse: true})   │
+│                                                    │
+│  • Test with .explain() to see performance         │
+│    db.col.aggregate([...]).explain()               │
+│                                                    │
+│  ❌ DON'T:                                          │
+│  • Put $match after $group                         │
+│    (processes all docs unnecessarily)              │
+│                                                    │
+│  • Fetch all fields if you need only few           │
+│    (wastes memory and bandwidth)                   │
+│                                                    │
+│  • Use $where in aggregation                       │
+│    (very slow, avoid)                              │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+### Data Modeling Best Practices
+
+```
+┌────────────────────────────────────────────────────┐
+│      Data Modeling Best Practices                  │
+├────────────────────────────────────────────────────┤
+│                                                    │
+│  1. Design for your queries                        │
+│     Structure data based on how you'll access it   │
+│                                                    │
+│  2. Embed for one-to-few relationships             │
+│     User + 3 addresses → Embed addresses           │
+│                                                    │
+│  3. Reference for one-to-many relationships        │
+│     Author + 1000 books → Reference books          │
+│                                                    │
+│  4. Consider document size limits                  │
+│     16MB per document - don't exceed               │
+│                                                    │
+│  5. Avoid unbounded arrays                         │
+│     Don't let arrays grow indefinitely             │
+│                                                    │
+│  6. Duplicate for performance                      │
+│     Snapshot frequently-accessed data              │
+│                                                    │
+│  7. Use schema validation in production            │
+│     Enforce data integrity with validators         │
+│                                                    │
+│  8. Index appropriately                            │
+│     Create indexes on frequently queried fields    │
+│                                                    │
+└────────────────────────────────────────────────────┘
+```
+
+---
+
+## Performance Tips
+
+```javascript
+// ===== Tip 1: Use indexes =====
+// Create index on frequently queried field
+db.emp.createIndex({ deptNo: 1 });
+db.emp.createIndex({ salary: -1 });
+
+// Now aggregations using these fields are faster
+db.emp.aggregate([
+  { $match: { deptNo: 10 } }, // Uses index
+  { $sort: { salary: -1 } }, // Uses index
+]);
+
+// ===== Tip 2: $match before $project =====
+// ✅ GOOD: Filter first (reduces data to project)
+db.emp.aggregate([
+  { $match: { salary: { $gt: 50000 } } }, // 100 → 30 docs
+  { $project: { name: 1, salary: 1 } }, // Project 30 docs
+]);
+
+// ❌ BAD: Project first (projects all data)
+db.emp.aggregate([
+  { $project: { name: 1, salary: 1 } }, // Project 100 docs
+  { $match: { salary: { $gt: 50000 } } }, // Then filter
+]);
+
+// ===== Tip 3: Use allowDiskUse for large datasets =====
+db.emp.aggregate(
+  [
+    { $group: { _id: "$dept", total: { $sum: "$salary" } } },
+    { $sort: { total: -1 } },
+  ],
+  {
+    allowDiskUse: true, // Use disk if exceeds 100MB memory
+  }
+);
+
+// ===== Tip 4: Limit early if possible =====
+db.emp.aggregate([
+  { $match: { job: "manager" } },
+  { $sort: { salary: -1 } },
+  { $limit: 10 }, // Only process top 10
+]);
+
+// ===== Tip 5: Use explain() to analyze =====
+db.emp
+  .aggregate([
+    { $match: { deptNo: 10 } },
+    { $group: { _id: "$job", count: { $sum: 1 } } },
+  ])
+  .explain("executionStats");
+// Shows:
+// - executionTimeMillis
+// - totalDocsExamined
+// - indexUsed
+```
+
+---
+
+## Common Aggregation Patterns
+
+```javascript
+// ===== Pattern 1: Top N by field =====
+// Top 5 highest salaries
+db.emp.aggregate([
+  { $sort: { salary: -1 } },
+  { $limit: 5 },
+  { $project: { name: 1, salary: 1, _id: 0 } },
+]);
+
+// ===== Pattern 2: Count by group with filter =====
+// Count employees per department, only departments with 5+ employees
+db.emp.aggregate([
+  { $group: { _id: "$deptNo", count: { $sum: 1 } } },
+  { $match: { count: { $gte: 5 } } },
+  { $sort: { count: -1 } },
+]);
+
+// ===== Pattern 3: Percentage calculation =====
+// Percentage of total salary per department
+db.emp.aggregate([
+  {
+    $group: {
+      _id: null,
+      totalCompanySalary: { $sum: "$salary" },
+    },
+  },
+  {
+    $lookup: {
+      from: "emp",
+      pipeline: [
+        {
+          $group: {
+            _id: "$deptNo",
+            deptSalary: { $sum: "$salary" },
+          },
+        },
+      ],
+      as: "deptData",
+    },
+  },
+  { $unwind: "$deptData" },
+  {
+    $project: {
+      department: "$deptData._id",
+      percentage: {
+        $multiply: [
+          { $divide: ["$deptData.deptSalary", "$totalCompanySalary"] },
+          100,
+        ],
+      },
+    },
+  },
+]);
+
+// ===== Pattern 4: Running totals =====
+// Cumulative salary by hire date
+db.emp.aggregate([
+  { $sort: { hireDate: 1 } },
+  {
+    $group: {
+      _id: null,
+      employees: {
+        $push: {
+          name: "$name",
+          hireDate: "$hireDate",
+          salary: "$salary",
+        },
+      },
+    },
+  },
+  {
+    $project: {
+      employees: {
+        $reduce: {
+          input: "$employees",
+          initialValue: { total: 0, result: [] },
+          in: {
+            total: { $add: ["$$value.total", "$$this.salary"] },
+            result: {
+              $concatArrays: [
+                "$$value.result",
+                [
+                  {
+                    name: "$$this.name",
+                    runningTotal: { $add: ["$$value.total", "$$this.salary"] },
+                  },
+                ],
+              ],
+            },
+          },
+        },
+      },
+    },
+  },
+]);
+
+// ===== Pattern 5: Grouping with multiple fields =====
+// Average salary by department and job
+db.emp.aggregate([
+  {
+    $group: {
+      _id: { dept: "$deptNo", job: "$job" },
+      avgSalary: { $avg: "$salary" },
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $project: {
+      _id: 0,
+      department: "$_id.dept",
+      jobTitle: "$_id.job",
+      averageSalary: { $round: ["$avgSalary", 2] },
+      employeeCount: "$count",
+    },
+  },
+  {
+    $sort: { department: 1, averageSalary: -1 },
+  },
+]);
+```
+
+---
+
+## Summary
+
+### Key Takeaways:
+
+1. **Data Modeling**:
+
+   - **Embedded**: One-to-few, data accessed together, atomic updates
+   - **Referenced**: One-to-many, separate lifecycle, frequent updates
+   - **Hybrid**: Often the best approach
+
+2. **Schema Validation**:
+
+   - Enforce data structure and types
+   - Use `bsonType`, `required`, `properties`
+   - Objects use `properties`, arrays use `items`
+
+3. **Query Methods**:
+
+   - `find()`: Basic querying
+   - `.sort()`: Order results (1 = asc, -1 = desc)
+   - `.limit()`: Restrict number of results
+   - `.skip()`: Skip first N documents
+
+4. **Aggregation Framework**:
+
+   - **Pipeline**: Series of stages transforming data
+   - **$match**: Filter documents (WHERE)
+   - **$project**: Select/transform fields (SELECT)
+   - **$group**: Group and aggregate (GROUP BY)
+   - **Non-destructive**: Doesn't modify original data
+
+5. **Best Practices**:
+   - Use $match early in pipeline
+   - Create indexes for performance
+   - Project only needed fields
+   - Design schema based on access patterns
+
+---
+
+## Additional Resources
+
+### Official Documentation:
+
+- **MongoDB Aggregation**: https://docs.mongodb.com/manual/aggregation/
+- **Data Modeling**: https://docs.mongodb.com/manual/core/data-modeling-introduction/
+- **Schema Validation**: https://docs.mongodb.com/manual/core/schema-validation/
+- **Aggregation Pipeline Optimization**: https://docs.mongodb.com/manual/core/aggregation-pipeline-optimization/
+
+### Learning Resources:
+
+- **MongoDB University**: Free courses on data modeling and aggregation
+- **Aggregation Pipeline Builder**: MongoDB Compass visual tool
+- **MongoDB Blog**: Best practices and patterns
+
+### Practice:
+
+- Try different aggregation patterns
+- Experiment with embedded vs referenced
+- Use `.explain()` to understand query performance
+- Build real-world data models
+
+---
+
+## Glossary
+
+| Term                    | Definition                                               |
+| ----------------------- | -------------------------------------------------------- |
+| **Aggregation**         | Data processing pipeline for transforming documents      |
+| **Pipeline**            | Series of stages that process documents sequentially     |
+| **$match**              | Aggregation stage for filtering documents                |
+| **$project**            | Stage for selecting and transforming fields              |
+| **$group**              | Stage for grouping documents and performing calculations |
+| **Embedded Document**   | Document nested inside another document                  |
+| **Referenced Document** | Document linked via ObjectId in separate collection      |
+| **Schema Validation**   | Rules enforcing document structure and types             |
+| **Denormalization**     | Storing related data together (embedding)                |
+| **Normalization**       | Storing related data separately (referencing)            |
+
+_"Good data modeling is 80% of your MongoDB success. Choose embedded vs referenced based on your access patterns, not just relationships!"_
+
+````
 ---
 
 ## Quick Reference
@@ -5199,7 +8076,7 @@ db.coll.deleteMany({filter})      // Delete multiple documents
 
 // IMPORT DATA
 mongoimport "path" -d db_name -c coll_name --jsonArray
-```
+````
 
 ---
 
@@ -5272,10 +8149,6 @@ mongoimport "path" -d db_name -c coll_name --jsonArray
 | **Denormalization** | Intentionally adding redundancy for performance                            |
 | **Sharding**        | Distributing data across multiple machines                                 |
 | **Replication**     | Copying data to multiple servers for redundancy                            |
-
----
-
----
 
 **Last Updated**: 2024
 **Version**: 1.4 (Added Intro To Operators)
