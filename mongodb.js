@@ -314,28 +314,6 @@ db.emp.find({ deptNo: { $in: [10, 20] } }, { empName: 1, _id: 0, deptNo: 1 });
 db.emp.find({ sal: { $gt: 1400 }, job: "clerk" }, { sal: 1, job: 1, _id: 0 });
 //? this will return the documents who are clerk and are having salary greater than 1400
 
-/* 
-! Find employees with sal greater than 2000.
-
-! Find departments with budget less than or equal to 150000.
-
-! Query employees whose city equals "Chicago".
-
-! Find employees whose education is not "bachelor".
-
-! Find employees whose deptNo is in [10, 30].
-
-! Find employees whose empNo is not in [7369, 7499].
-
-! Query employees with bonus >= 1000 and sal < 3000. (not this)
-
-! Find employees where mgr field is null.
-
-! Find departments where headOfDept exists (non-null). (not this)
-
-! Query employees whose age is between 25 and 40 (inclusive). (not this)
-*/
-
 //? Find employees whose education is not "bachelor".
 db.emp.find(
   { education: { $ne: "Bachelor" } },
@@ -476,49 +454,6 @@ db.emp.find(
   },
   { empName: 1, skills: 1, _id: 0 }
 );
-
-/* 
-Q: Write a query to find the details of employee with empNo: 7839 using findOne().
-Q: What are the three parameters of findOne()? Which ones are optional?
-Q: Write a query to find one employee from department 30.
-Q: Find one employee whose job is "manager".
-Q: Write a query to find any one document from the emp collection (no filter).
-Q: Find one employee and return only their empName and job fields (exclude _id).
-Q: What does findOne() return if no document matches the filter?
-Q: Find one employee with sal greater than 3000.
-Q: Find one employee who works in "Chicago" city.
-Q: Write a query to find one employee whose empName is "king" and return only empName, job, and sal.
-Q: Find one document from dept collection where deptNo is 20.
-Q: What is the difference between findOne() and find()?
-Q: Find one employee whose age is less than 30.
-Q: Write a query to find one employee with commission (comm) equal to 0.
-Q: Find one employee who has "python" in their skills array.
-Q: Find the department located in "dallas" (case-sensitive).
-Q: Write a query to find one employee with salary between 2000 and 3000.
-Q: Find one employee whose manager (mgr) is 7698.
-Q: In projection, what does 1 mean and what does 0 mean?
-Q: Find one employee who works in department 20 AND has a salary greater than 2000, returning only empName, sal, and deptNo.
-Q: Write a query to find one employee whose performance rating is greater than 4.5 (nested field).
-Q: Find one employee from the emp collection who either works in department 10 OR has a job as "analyst".
-Q: Write a query to find one employee who does NOT have insurance (havingInsurance: false).
-Q: Find one employee whose salary is in the array [1100, 1250, 1500].
-Q: Write a query to find one employee who has both "html" and "python" in their skills array.
-Q: Find one remote employee (isRemote: true) who works in department 20.
-Q: Write a query to find one employee whose age is NOT equal to 25.
-Q: Find one employee whose empName starts with "m" (you'll need to research regex).
-Q: Write a query to find the department with exactly 0 employees.
-Q: Find one employee with a performance rating less than or equal to 4.0 and return only their empName and performance object.
-Q: Write a query to find one employee whose education is "master" and job is "manager".
-Q: Find one employee who was hired after January 1, 1982 (hireDate comparison).
-Q: Write a query to find one employee whose projects array contains "project_alpha".
-Q: Find one employee who has a bonus greater than 1000 but no commission (comm: 0).
-Q: Write a query to find one department that is NOT active (isActive: false).
-Q: Find one employee whose city is either "Noida" or "Pune".
-Q: Write a query to find one employee with totalHoursWorked greater than 2000.
-Q: Find one employee whose lastReviewDate (nested in performance) is in 2024.
-Q: Write a query to find one employee whose empNo is greater than 7800 and return all fields except _id and skills.
-
-*/
 
 //~ ============================ array operators =================================
 //? $all --> it fetches the documents which matches all the given conditions
@@ -826,176 +761,6 @@ db.emp.find({ salary: { $mod: [100, 0] } }, { salary: 1, _id: 0 });
 //? $rename --> it is used to rename a key
 // updation part --> { rename: {oldKey: "newKey"} }
 
-//! update op questions
-// ============================================
-// MONGODB UPDATE OPERATORS PRACTICE QUESTIONS
-// Collections: emp.dept & emp.emp
-// ============================================
-
-// ============================================
-// $expr OPERATOR (Comparison & Aggregation)
-// ============================================
-
-// 1. Find all employees whose salary is greater than their bonus
-
-// 2. Find all employees whose age is less than their department number
-
-// 3. Find all employees whose totalHoursWorked is greater than (salary * 0.5)
-
-// 4. Find all employees whose commission is greater than their bonus
-
-// 5. Find employees hired in the month of April (month = 4)
-
-// 6. Find employees hired in the month of December (month = 12)
-
-// 7. Find employees hired in the year 1981
-
-// 8. Find employees whose (salary + bonus + comm) is greater than 4000
-
-// 9. Find departments where budget is greater than (employeeCount * 50000)
-
-// 10. Find employees where totalHoursWorked divided by age is greater than 50
-
-// ============================================
-// $mod OPERATOR (Modulo Operations)
-// ============================================
-
-// 11. Find all employees whose salary is even (divisible by 2, remainder 0)
-
-// 12. Find all employees whose salary is odd (divisible by 2, remainder 1)
-
-// 13. Find employees whose empNo is divisible by 3 (remainder 0)
-
-// 14. Find employees whose bonus is divisible by 500 (remainder 0)
-
-// 15. Find departments whose deptNo is divisible by 10 (remainder 0)
-
-// 16. Find employees whose age is divisible by 5 (remainder 0)
-
-// 17. Find employees whose totalHoursWorked when divided by 100 gives remainder 0
-
-// 18. Find departments whose budget when divided by 10000 gives remainder 0
-
-// 19. Find employees whose empNo ends in 0 (divisible by 10)
-
-// 20. Find employees whose commission when divided by 400 gives remainder 0
-
-// ============================================
-// FIELD UPDATE OPERATORS ($set, $unset, $rename)
-// ============================================
-
-// 21. Add a new field "lastPromotionDate" with current date to employee "smith"
-
-// 22. Update employee "allen" salary to 2000
-
-// 23. Add a field "parkingSpot" with value "A-101" to employee "king"
-
-// 24. Set "isActive" to false for department 40
-
-// 25. Add "workFromHome" field with value true for employee "ward"
-
-// 26. Update the location of "accounting" department to "manhattan"
-
-// 27. Set performance rating to 4.9 for employee "martin"
-
-// 28. Add a new facility "gym" to the facilities array of department 20
-
-// 29. Rename field "sal" to "salary" for all employees (if not done already)
-
-// 30. Rename field "comm" to "commission" for all employees
-
-// 31. Rename field "loc" to "location" for all departments
-
-// 32. Remove the "incentive" field from employee "ward"
-
-// 33. Remove the "age" field from all employees in department 30
-
-// 34. Remove "headOfDept" field from department 40
-
-// 35. Add "emailVerified" field with value true to all managers
-
-// ============================================
-// ARITHMETIC UPDATE OPERATORS ($max, $min, $inc, $mul)
-// ============================================
-
-// 36. Update employee "smith" salary to 1500 only if 1500 is greater than current salary ($max)
-
-// 37. Update employee "james" salary to 1000 only if 1000 is less than current salary ($min)
-
-// 38. Increase salary of employee "adams" by 500 ($inc)
-
-// 39. Decrease commission of employee "martin" by 200 ($inc with negative)
-
-// 40. Increase bonus of all clerks by 300
-
-// 41. Increase budget of department 20 by 50000
-
-// 42. Decrease totalHoursWorked of employee "turner" by 50 hours
-
-// 43. Increase performance rating of employee "ford" by 0.2 (use $inc)
-
-// 44. Update salary of "allen" to 1800 only if 1800 is greater than current salary
-
-// 45. Increase age of employee "miller" by 1 (birthday increment)
-
-// 46. Multiply salary of employee "king" by 1.1 (10% raise using $mul)
-
-// 47. Multiply bonus of all analysts by 1.15 (15% increase)
-
-// 48. Multiply budget of all active departments by 1.05 (5% increase)
-
-// 49. Increase employeeCount of department 30 by 1 (new hire)
-
-// 50. Set floor number to 6 for department 10, only if 6 is greater than current floor
-
-// ============================================
-// COMBINED UPDATE OPERATIONS
-// ============================================
-
-// 51. For employee "scott": increase salary by 500 AND add field "certified" with value true
-
-// 52. For employee "blake": set performance rating to 4.5 AND increase bonus by 200
-
-// 53. For all salesmen: increase commission by 100 AND add "targetAchieved" field as true
-
-// 54. For department 20: increase budget by 30000 AND add facility "cafeteria"
-
-// 55. For employee "jones": rename "totalHoursWorked" to "hoursLogged" AND increase it by 100
-
-// 56. For all employees in dept 10: increase salary by 300 AND increase bonus by 150
-
-// 57. For employee "clark": set salary to 2800 (only if greater) AND remove "age" field
-
-// 58. For all remote employees: increase bonus by 400 AND add "remoteAllowance" field with 200
-
-// 59. For department "sales": increase employeeCount by 2 AND set isActive to true
-
-// 60. For all employees with insurance: increase bonus by 250 AND add "insurancePremium" with 100
-
-// ============================================
-// ADVANCED UPDATE SCENARIOS
-// ============================================
-
-// 61. Increase salary by 10% for all employees whose performance rating is above 4.5
-
-// 62. Add "seniorEmployee" field as true for employees hired before 1982
-
-// 63. Set commission to 0 for all employees whose job is NOT "salesman"
-
-// 64. Increase budget by 20000 for departments with more than 4 employees
-
-// 65. Add "trainingRequired" field as true for all clerks with performance rating below 4.0
-
-// 66. Decrease bonus by 100 for employees without insurance
-
-// 67. Add "performanceBonus" of 500 for employees with rating exactly 5.0
-
-// 68. Update totalHoursWorked to minimum of 2000 for all employees (using $max)
-
-// 69. Set all commissions to maximum of 1000 (reduce if higher using $min)
-
-// 70. Increase salary by age * 10 for all employees in research department (use $expr in filter)
-
 //! Add a new field "lastPromotionDate" with current date to employee "smith"
 db.emp.updateOne(
   { empNo: 7369 },
@@ -1205,8 +970,6 @@ db.createCollection("info", {
     },
   },
 });
-
-//! questions for array update operators ($push, $pull, $pullAll, $pop, $each($slice, $position, $sort,), $addToSet, $, $[], $[e])
 
 // ============================================
 // MONGODB ARRAY UPDATE OPERATORS PRACTICE QUESTIONS
@@ -1678,6 +1441,471 @@ db.emp
   .skip(2)
   .limit(1);
 
-//! aggregation (aggregate()) -->
 db.emp.find(); //? (filter, projection, sort, skip, limit)
 // db.emp.aggregate(); ==> using aggregate() we can only fetch
+
+/* 
+Aggregation in MongoDB is like a data processing pipeline.
+
+Imagine you have many documents (records), and you want to:
+  filter them
+  group them
+  count them
+  sort them
+  and calculate totals or averages
+  or join two collections
+
+Instead of writing many queries, you use one single pipeline where data flows step by step.
+*/
+
+/* In MongoDB, aggregation essentially refers to a powerful framework that allows us to process, transform, and analyze data in a pipeline-based manner, very similar to how SQL performs GROUP BY, HAVING, JOIN, and complex reporting operations. The core idea behind aggregation is that instead of simply fetching documents, we can push documents through a series of well-defined stages — such as filtering, grouping, projecting, sorting, joining, and computing — to generate meaningful insights or reshaped data.
+
+It is a data processing pipeline. Each stage in the pipeline takes the incoming documents, applies a specific transformation, and passes the results to the next stage. For example, $match is like a filter, $group performs grouping and aggregations like count, sum, avg, min, max, $project reshapes the fields, $sort reorders documents, and $lookup performs joins across collections. */
+
+// aggregating
+// ============================================
+// MONGODB AGGREGATION PIPELINE PRACTICE QUESTIONS
+// Collections: emp.dept & emp.emp
+// ============================================
+
+// ============================================
+// STAGE 1: $match (Filtering documents)
+// ============================================
+
+// 1. Find all employees with salary greater than 2000
+
+// 2. Find all employees working in department 20 or 30
+
+// 3. Find all managers and analysts
+
+// 4. Find employees with performance rating above 4.0
+
+// 5. Find all active departments
+
+// 6. Find employees hired after 1985
+
+// 7. Find all remote employees
+
+// 8. Find departments with budget greater than 150000
+
+// 9. Find employees who have insurance
+
+// 10. Find all salesmen with commission greater than 500
+
+// ============================================
+// STAGE 2: $project (Selecting/transforming fields)
+// ============================================
+
+// 11. Show only empName, job, and salary for all employees
+
+// 12. Show deptNo, dName, and budget for all departments
+
+// 13. Show employee name and calculate annual salary (salary * 12)
+
+// 14. Show employee name and total compensation (sal + bonus + comm)
+
+// 15. Show department name and budget in thousands (budget / 1000)
+
+// 16. Show employee name and whether salary > 2000 (boolean field)
+
+// 17. Show employee name, job, and hide _id field
+
+// 18. Show first 3 characters of employee name (use $substr)
+
+// 19. Show department name in uppercase
+
+// 20. Show employee name and number of skills (use $size)
+
+// ============================================
+// STAGE 3: $group (Grouping and aggregating)
+// ============================================
+
+// 21. Count total number of employees in each department
+
+// 22. Find average salary by department
+
+// 23. Find total salary expense by department
+
+// 24. Find maximum salary in each department
+
+// 25. Find minimum salary in each department
+
+// 26. Count employees by job role
+
+// 27. Find total bonus paid by department
+
+// 28. Find average performance rating by job role
+
+// 29. Count total employees by city
+
+// 30. Find sum of budget for all departments
+
+// 31. Find average age by education level
+
+// 32. Count remote vs non-remote employees
+
+// 33. Find total commission paid by department
+
+// 34. Find the highest bonus in each job category
+
+// 35. Count employees with and without insurance
+
+// ============================================
+// STAGE 4: $sort (Sorting documents)
+// ============================================
+
+// 36. Sort employees by salary in descending order
+
+// 37. Sort departments by budget in ascending order
+
+// 38. Sort employees by hireDate (oldest first)
+
+// 39. Sort employees by performance rating (highest first)
+
+// 40. Sort employees by name alphabetically
+
+// 41. Sort departments by employeeCount descending
+
+// 42. Sort employees by age ascending
+
+// 43. Sort employees first by department, then by salary descending
+
+// 44. Sort employees by totalHoursWorked descending
+
+// 45. Sort departments by established date (oldest first)
+
+// ============================================
+// STAGE 5: $limit and $skip (Pagination)
+// ============================================
+
+// 46. Get top 5 highest paid employees
+
+// 47. Get top 3 departments by budget
+
+// 48. Skip first 3 employees and show next 5
+
+// 49. Get employees ranked 4-7 by salary
+
+// 50. Show only first 2 departments
+
+// ============================================
+// STAGE 6: $lookup (Joining collections)
+// ============================================
+
+// 51. Join employees with their department information
+
+// 52. Join departments with their employees
+
+// 53. For each employee, show their department name and location
+
+// 54. For each department, show all employee names working there
+
+// 55. Join employees with departments and show only matching records
+
+// ============================================
+// STAGE 7: $unwind (Deconstructing arrays)
+// ============================================
+
+// 56. Unwind skills array to show one skill per document
+
+// 57. Unwind projects array for all employees
+
+// 58. Unwind facilities array for departments
+
+// 59. Count total number of skills across all employees (after unwind)
+
+// 60. Count how many employees have each specific skill (unwind then group)
+
+// 61. List all projects with employee names (unwind projects)
+
+// 62. Show each facility with its department name (unwind facilities)
+
+// ============================================
+// STAGE 8: $addFields (Adding computed fields)
+// ============================================
+
+// 63. Add a field "annualSalary" (salary * 12) to all employees
+
+// 64. Add field "totalCompensation" (sal + bonus + comm)
+
+// 65. Add field "experienceYears" (current year - hire year)
+
+// 66. Add field "isHighPerformer" (rating >= 4.5)
+
+// 67. Add field "budgetInMillions" (budget / 1000000)
+
+// 68. Add field "skillCount" (number of skills)
+
+// 69. Add field "projectCount" (number of projects)
+
+// 70. Add field "hourlyRate" (salary / totalHoursWorked)
+
+// ============================================
+// STAGE 9: $count (Counting documents)
+// ============================================
+
+// 71. Count total number of employees
+
+// 72. Count employees with salary > 2000
+
+// 73. Count departments with budget > 150000
+
+// 74. Count remote employees
+
+// 75. Count managers across all departments
+
+// ============================================
+// STAGE 10: $sum, $avg, $max, $min in $group
+// ============================================
+
+// 76. Find total salary budget across all departments
+
+// 77. Find average employee age
+
+// 78. Find the highest salary in the company
+
+// 79. Find the lowest salary in the company
+
+// 80. Calculate total hours worked by all employees
+
+// 81. Find average bonus by department
+
+// 82. Find total commission paid company-wide
+
+// 83. Find maximum performance rating
+
+// 84. Find minimum age across all employees
+
+// 85. Calculate average totalHoursWorked by job role
+
+// ============================================
+// STAGE 11: $bucket and $bucketAuto (Grouping into ranges)
+// ============================================
+
+// 86. Group employees into salary ranges: 0-1500, 1500-3000, 3000+
+
+// 87. Group employees by age ranges: 20-30, 30-40, 40-50, 50+
+
+// 88. Group departments by budget ranges: 0-150k, 150k-200k, 200k+
+
+// 89. Auto-bucket employees into 3 groups by salary
+
+// 90. Group employees by performance rating ranges: 0-3, 3-4, 4-5
+
+// ============================================
+// STAGE 12: $facet (Multiple aggregation pipelines)
+// ============================================
+
+// 91. Get both: top 5 earners AND average salary by department
+
+// 92. Get: total employees count AND employees grouped by job
+
+// 93. Get: highest salary AND lowest salary AND average salary
+
+// 94. Get: department statistics AND employee statistics in one query
+
+// 95. Get: remote employee count AND non-remote count AND average salary for each
+
+// ============================================
+// STAGE 13: $sortByCount (Group and count, then sort)
+// ============================================
+
+// 96. Count employees by job role and sort by count
+
+// 97. Count employees by city and sort by count
+
+// 98. Count employees by education level and sort
+
+// 99. Count employees by department and sort
+
+// 100. Count departments by location and sort
+
+// ============================================
+// STAGE 14: $replaceRoot and $replaceWith (Replace document root)
+// ============================================
+
+// 101. Replace root with performance subdocument for all employees
+
+// 102. Extract only the embedded performance object as main document
+
+// 103. Promote performance fields to top level
+
+// ============================================
+// STAGE 15: $out and $merge (Output to collection)
+// ============================================
+
+// 104. Create a new collection "high_performers" with employees having rating > 4.5
+
+// 105. Create "dept_summary" collection with employee count and avg salary per dept
+
+// 106. Merge aggregation results into existing collection
+
+// ============================================
+// COMPLEX AGGREGATION SCENARIOS
+// ============================================
+
+// 107. Find department with highest average employee salary
+
+// 108. Find top 3 most common skills across all employees
+
+// 109. Calculate salary percentile ranking for each employee
+
+// 110. Find employees earning more than their department average
+
+// 111. List departments with their total compensation expense (sal + bonus + comm)
+
+// 112. Find the most experienced employee in each department
+
+// 113. Calculate manager-to-employee ratio by department
+
+// 114. Find employees working on more than 2 projects
+
+// 115. Get monthly hiring trend (count of employees hired each month)
+
+// 116. Find correlation between education level and average salary
+
+// 117. List all unique skills in the company with employee count per skill
+
+// 118. Calculate retention rate by hire year
+
+// 119. Find departments where average performance rating > 4.0
+
+// 120. Get employee distribution across salary quartiles
+
+// ============================================
+// STAGE 16: $cond, $switch (Conditional expressions)
+// ============================================
+
+// 121. Classify employees as "Junior" (sal < 1500), "Mid" (1500-3000), "Senior" (>3000)
+
+// 122. Categorize performance: "Excellent" (>4.5), "Good" (3.5-4.5), "Needs Improvement" (<3.5)
+
+// 123. Label departments as "Large" (>5 emp), "Medium" (3-5), "Small" (<3)
+
+// 124. Mark employees as "Experienced" if hired before 1985, else "Recent"
+
+// 125. Classify age groups: "Young" (<30), "Mid-career" (30-45), "Senior" (>45)
+
+// ============================================
+// STAGE 17: String Operators ($concat, $toUpper, $toLower, $substr)
+// ============================================
+
+// 126. Create full employee title: "Mr./Ms. [Name] - [Job]"
+
+// 127. Convert all department names to uppercase
+
+// 128. Extract first 3 letters of employee names
+
+// 129. Concatenate department name and location: "Sales - Chicago"
+
+// 130. Convert employee names to lowercase
+
+// ============================================
+// STAGE 18: Date Operators ($year, $month, $dayOfMonth, $dateToString)
+// ============================================
+
+// 131. Extract hire year for all employees
+
+// 132. Extract hire month for all employees
+
+// 133. Find employees hired in specific month (e.g., April)
+
+// 134. Calculate years of service for each employee
+
+// 135. Format hireDate as "DD-MM-YYYY" string
+
+// 136. Group employees by hire year and count
+
+// 137. Find employees with anniversary this month
+
+// 138. Extract day of week when employee was hired
+
+// ============================================
+// STAGE 19: Array Operators ($size, $filter, $map, $reduce)
+// ============================================
+
+// 139. Count number of skills for each employee
+
+// 140. Filter employees who have "python" in skills
+
+// 141. Show only employees with more than 3 skills
+
+// 142. Extract first 2 skills from each employee
+
+// 143. Check if employee has any skill from ["java", "python", "c++"]
+
+// 144. Count total unique skills in company
+
+// 145. Find employees who have all skills from ["sql", "python"]
+
+// ============================================
+// STAGE 20: $setWindowFields (Window functions)
+// ============================================
+
+// 146. Rank employees by salary within their department
+
+// 147. Calculate running total of salary by department
+
+// 148. Find salary difference between employee and dept average
+
+// 149. Assign row numbers to employees sorted by hire date
+
+// 150. Calculate moving average of last 3 salaries by department
+
+// ============================================
+// STAGE 21: $geoNear and Location-based (if coordinates added)
+// ============================================
+
+// Note: These require adding coordinates to department locations
+
+// 151. Find departments within 100km of given coordinates
+
+// 152. Sort departments by distance from headquarters
+
+// 153. Find nearest department to a given location
+
+// ============================================
+// STAGE 22: $redact (Conditional document filtering)
+// ============================================
+
+// 154. Redact sensitive salary info for employees earning > 4000
+
+// 155. Show only public department information (hide budget)
+
+// ============================================
+// STAGE 23: $sample (Random sampling)
+// ============================================
+
+// 156. Get 5 random employees
+
+// 157. Get 2 random departments
+
+// 158. Random sample of 3 managers
+
+// ============================================
+// STAGE 24: Multi-stage Complex Pipelines
+// ============================================
+
+// 159. Find avg salary by dept, filter depts with avg > 2000, sort by avg desc
+
+// 160. Count employees by city, show only cities with > 2 employees
+
+// 161. Calculate total compensation by dept, sort desc, limit to top 3
+
+// 162. Unwind skills, group by skill, count, sort by count desc, limit 5
+
+// 163. Join emp with dept, calculate total emp cost per dept, sort by cost
+
+// 164. Group by education, find avg salary, avg age, count employees
+
+// 165. Find employees above dept avg salary with their salary difference
+
+// 166. Calculate dept-wise performance metrics (avg rating, total bonus)
+
+// 167. Find top performer in each department by performance rating
+
+// 168. Analyze hiring trends: count by year and month
+
+// 169. Find correlation between skills count and salary
+
+// 170. Department efficiency: budget per employee, sort by efficiency
