@@ -1444,6 +1444,9 @@ db.emp
 db.emp.find(); //? (filter, projection, sort, skip, limit)
 // db.emp.aggregate(); ==> using aggregate() we can only fetch
 
+//! ========================== aggregation =========================================
+//! whatever operations are performed using aggregate it does not modify the original data
+
 /* 
 Aggregation in MongoDB is like a data processing pipeline.
 
@@ -1462,450 +1465,102 @@ Instead of writing many queries, you use one single pipeline where data flows st
 
 It is a data processing pipeline. Each stage in the pipeline takes the incoming documents, applies a specific transformation, and passes the results to the next stage. For example, $match is like a filter, $group performs grouping and aggregations like count, sum, avg, min, max, $project reshapes the fields, $sort reorders documents, and $lookup performs joins across collections. */
 
-// aggregating
-// ============================================
-// MONGODB AGGREGATION PIPELINE PRACTICE QUESTIONS
-// Collections: emp.dept & emp.emp
-// ============================================
+// db.collection_name.aggregate([{$match}, {s2}, {s3}, {s4}, ...])
+//? input to stage1 --> collection
+//? input to stage2 --> op of stage1
+//? input to stage3 --> op of stage2
 
-// ============================================
-// STAGE 1: $match (Filtering documents)
-// ============================================
+//& each stage:{} can only consist one aggregation operator , $match, $project, $addFields, etc...
+//& different aggregation operators
+
+//? $match --> it is used to filter out the documents based on some conditions
+//? $project --> it is used to hide/display the fields of the documents and also used for aliasing
+
+db.collection_name.aggregate([
+  {
+    $match: { conditions },
+  },
+]);
+
+//! display all the emp details who are working as clerk
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" }, // stage1
+  },
+]);
+
+//! display all the emp names and hireDate who are working as clerk
+db.emp.aggregate([
+  {
+    //s1
+    $match: {
+      job: "clerk",
+    },
+  },
+  {
+    $project: {
+      name: 1,
+      hireDate: 1,
+      _id: 0,
+    },
+  }, //s2
+]);
+
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      hireDate: 1,
+      job: 1,
+      _id: 0,
+    },
+  }, //s2
+  {
+    //s1
+    $match: {
+      job: "clerk",
+    },
+  },
+]);
 
 // 1. Find all employees with salary greater than 2000
+db.emp.aggregate([
+  {
+    $match: {
+      salary: { $gt: 2000 },
+    },
+  },
+]);
 
 // 2. Find all employees working in department 20 or 30
-
-// 3. Find all managers and analysts
-
-// 4. Find employees with performance rating above 4.0
-
-// 5. Find all active departments
-
-// 6. Find employees hired after 1985
-
-// 7. Find all remote employees
-
-// 8. Find departments with budget greater than 150000
-
-// 9. Find employees who have insurance
-
-// 10. Find all salesmen with commission greater than 500
-
-// ============================================
-// STAGE 2: $project (Selecting/transforming fields)
-// ============================================
-
-// 11. Show only empName, job, and salary for all employees
-
-// 12. Show deptNo, dName, and budget for all departments
-
-// 13. Show employee name and calculate annual salary (salary * 12)
-
-// 14. Show employee name and total compensation (sal + bonus + comm)
-
-// 15. Show department name and budget in thousands (budget / 1000)
-
-// 16. Show employee name and whether salary > 2000 (boolean field)
-
-// 17. Show employee name, job, and hide _id field
-
-// 18. Show first 3 characters of employee name (use $substr)
-
-// 19. Show department name in uppercase
-
-// 20. Show employee name and number of skills (use $size)
-
-// ============================================
-// STAGE 3: $group (Grouping and aggregating)
-// ============================================
-
-// 21. Count total number of employees in each department
-
-// 22. Find average salary by department
-
-// 23. Find total salary expense by department
-
-// 24. Find maximum salary in each department
-
-// 25. Find minimum salary in each department
-
-// 26. Count employees by job role
-
-// 27. Find total bonus paid by department
-
-// 28. Find average performance rating by job role
-
-// 29. Count total employees by city
-
-// 30. Find sum of budget for all departments
-
-// 31. Find average age by education level
-
-// 32. Count remote vs non-remote employees
-
-// 33. Find total commission paid by department
-
-// 34. Find the highest bonus in each job category
-
-// 35. Count employees with and without insurance
-
-// ============================================
-// STAGE 4: $sort (Sorting documents)
-// ============================================
-
-// 36. Sort employees by salary in descending order
-
-// 37. Sort departments by budget in ascending order
-
-// 38. Sort employees by hireDate (oldest first)
-
-// 39. Sort employees by performance rating (highest first)
-
-// 40. Sort employees by name alphabetically
-
-// 41. Sort departments by employeeCount descending
-
-// 42. Sort employees by age ascending
-
-// 43. Sort employees first by department, then by salary descending
-
-// 44. Sort employees by totalHoursWorked descending
-
-// 45. Sort departments by established date (oldest first)
-
-// ============================================
-// STAGE 5: $limit and $skip (Pagination)
-// ============================================
-
-// 46. Get top 5 highest paid employees
-
-// 47. Get top 3 departments by budget
-
-// 48. Skip first 3 employees and show next 5
-
-// 49. Get employees ranked 4-7 by salary
-
-// 50. Show only first 2 departments
-
-// ============================================
-// STAGE 6: $lookup (Joining collections)
-// ============================================
-
-// 51. Join employees with their department information
-
-// 52. Join departments with their employees
-
-// 53. For each employee, show their department name and location
-
-// 54. For each department, show all employee names working there
-
-// 55. Join employees with departments and show only matching records
-
-// ============================================
-// STAGE 7: $unwind (Deconstructing arrays)
-// ============================================
-
-// 56. Unwind skills array to show one skill per document
-
-// 57. Unwind projects array for all employees
-
-// 58. Unwind facilities array for departments
-
-// 59. Count total number of skills across all employees (after unwind)
-
-// 60. Count how many employees have each specific skill (unwind then group)
-
-// 61. List all projects with employee names (unwind projects)
-
-// 62. Show each facility with its department name (unwind facilities)
-
-// ============================================
-// STAGE 8: $addFields (Adding computed fields)
-// ============================================
-
-// 63. Add a field "annualSalary" (salary * 12) to all employees
-
-// 64. Add field "totalCompensation" (sal + bonus + comm)
-
-// 65. Add field "experienceYears" (current year - hire year)
-
-// 66. Add field "isHighPerformer" (rating >= 4.5)
-
-// 67. Add field "budgetInMillions" (budget / 1000000)
-
-// 68. Add field "skillCount" (number of skills)
-
-// 69. Add field "projectCount" (number of projects)
-
-// 70. Add field "hourlyRate" (salary / totalHoursWorked)
-
-// ============================================
-// STAGE 9: $count (Counting documents)
-// ============================================
-
-// 71. Count total number of employees
-
-// 72. Count employees with salary > 2000
-
-// 73. Count departments with budget > 150000
-
-// 74. Count remote employees
-
-// 75. Count managers across all departments
-
-// ============================================
-// STAGE 10: $sum, $avg, $max, $min in $group
-// ============================================
-
-// 76. Find total salary budget across all departments
-
-// 77. Find average employee age
-
-// 78. Find the highest salary in the company
-
-// 79. Find the lowest salary in the company
-
-// 80. Calculate total hours worked by all employees
-
-// 81. Find average bonus by department
-
-// 82. Find total commission paid company-wide
-
-// 83. Find maximum performance rating
-
-// 84. Find minimum age across all employees
-
-// 85. Calculate average totalHoursWorked by job role
-
-// ============================================
-// STAGE 11: $bucket and $bucketAuto (Grouping into ranges)
-// ============================================
-
-// 86. Group employees into salary ranges: 0-1500, 1500-3000, 3000+
-
-// 87. Group employees by age ranges: 20-30, 30-40, 40-50, 50+
-
-// 88. Group departments by budget ranges: 0-150k, 150k-200k, 200k+
-
-// 89. Auto-bucket employees into 3 groups by salary
-
-// 90. Group employees by performance rating ranges: 0-3, 3-4, 4-5
-
-// ============================================
-// STAGE 12: $facet (Multiple aggregation pipelines)
-// ============================================
-
-// 91. Get both: top 5 earners AND average salary by department
-
-// 92. Get: total employees count AND employees grouped by job
-
-// 93. Get: highest salary AND lowest salary AND average salary
-
-// 94. Get: department statistics AND employee statistics in one query
-
-// 95. Get: remote employee count AND non-remote count AND average salary for each
-
-// ============================================
-// STAGE 13: $sortByCount (Group and count, then sort)
-// ============================================
-
-// 96. Count employees by job role and sort by count
-
-// 97. Count employees by city and sort by count
-
-// 98. Count employees by education level and sort
-
-// 99. Count employees by department and sort
-
-// 100. Count departments by location and sort
-
-// ============================================
-// STAGE 14: $replaceRoot and $replaceWith (Replace document root)
-// ============================================
-
-// 101. Replace root with performance subdocument for all employees
-
-// 102. Extract only the embedded performance object as main document
-
-// 103. Promote performance fields to top level
-
-// ============================================
-// STAGE 15: $out and $merge (Output to collection)
-// ============================================
-
-// 104. Create a new collection "high_performers" with employees having rating > 4.5
-
-// 105. Create "dept_summary" collection with employee count and avg salary per dept
-
-// 106. Merge aggregation results into existing collection
-
-// ============================================
-// COMPLEX AGGREGATION SCENARIOS
-// ============================================
-
-// 107. Find department with highest average employee salary
-
-// 108. Find top 3 most common skills across all employees
-
-// 109. Calculate salary percentile ranking for each employee
-
-// 110. Find employees earning more than their department average
-
-// 111. List departments with their total compensation expense (sal + bonus + comm)
-
-// 112. Find the most experienced employee in each department
-
-// 113. Calculate manager-to-employee ratio by department
-
-// 114. Find employees working on more than 2 projects
-
-// 115. Get monthly hiring trend (count of employees hired each month)
-
-// 116. Find correlation between education level and average salary
-
-// 117. List all unique skills in the company with employee count per skill
-
-// 118. Calculate retention rate by hire year
-
-// 119. Find departments where average performance rating > 4.0
-
-// 120. Get employee distribution across salary quartiles
-
-// ============================================
-// STAGE 16: $cond, $switch (Conditional expressions)
-// ============================================
-
-// 121. Classify employees as "Junior" (sal < 1500), "Mid" (1500-3000), "Senior" (>3000)
-
-// 122. Categorize performance: "Excellent" (>4.5), "Good" (3.5-4.5), "Needs Improvement" (<3.5)
-
-// 123. Label departments as "Large" (>5 emp), "Medium" (3-5), "Small" (<3)
-
-// 124. Mark employees as "Experienced" if hired before 1985, else "Recent"
-
-// 125. Classify age groups: "Young" (<30), "Mid-career" (30-45), "Senior" (>45)
-
-// ============================================
-// STAGE 17: String Operators ($concat, $toUpper, $toLower, $substr)
-// ============================================
-
-// 126. Create full employee title: "Mr./Ms. [Name] - [Job]"
-
-// 127. Convert all department names to uppercase
-
-// 128. Extract first 3 letters of employee names
-
-// 129. Concatenate department name and location: "Sales - Chicago"
-
-// 130. Convert employee names to lowercase
-
-// ============================================
-// STAGE 18: Date Operators ($year, $month, $dayOfMonth, $dateToString)
-// ============================================
-
-// 131. Extract hire year for all employees
-
-// 132. Extract hire month for all employees
-
-// 133. Find employees hired in specific month (e.g., April)
-
-// 134. Calculate years of service for each employee
-
-// 135. Format hireDate as "DD-MM-YYYY" string
-
-// 136. Group employees by hire year and count
-
-// 137. Find employees with anniversary this month
-
-// 138. Extract day of week when employee was hired
-
-// ============================================
-// STAGE 19: Array Operators ($size, $filter, $map, $reduce)
-// ============================================
-
-// 139. Count number of skills for each employee
-
-// 140. Filter employees who have "python" in skills
-
-// 141. Show only employees with more than 3 skills
-
-// 142. Extract first 2 skills from each employee
-
-// 143. Check if employee has any skill from ["java", "python", "c++"]
-
-// 144. Count total unique skills in company
-
-// 145. Find employees who have all skills from ["sql", "python"]
-
-// ============================================
-// STAGE 20: $setWindowFields (Window functions)
-// ============================================
-
-// 146. Rank employees by salary within their department
-
-// 147. Calculate running total of salary by department
-
-// 148. Find salary difference between employee and dept average
-
-// 149. Assign row numbers to employees sorted by hire date
-
-// 150. Calculate moving average of last 3 salaries by department
-
-// ============================================
-// STAGE 21: $geoNear and Location-based (if coordinates added)
-// ============================================
-
-// Note: These require adding coordinates to department locations
-
-// 151. Find departments within 100km of given coordinates
-
-// 152. Sort departments by distance from headquarters
-
-// 153. Find nearest department to a given location
-
-// ============================================
-// STAGE 22: $redact (Conditional document filtering)
-// ============================================
-
-// 154. Redact sensitive salary info for employees earning > 4000
-
-// 155. Show only public department information (hide budget)
-
-// ============================================
-// STAGE 23: $sample (Random sampling)
-// ============================================
-
-// 156. Get 5 random employees
-
-// 157. Get 2 random departments
-
-// 158. Random sample of 3 managers
-
-// ============================================
-// STAGE 24: Multi-stage Complex Pipelines
-// ============================================
-
-// 159. Find avg salary by dept, filter depts with avg > 2000, sort by avg desc
-
-// 160. Count employees by city, show only cities with > 2 employees
-
-// 161. Calculate total compensation by dept, sort desc, limit to top 3
-
-// 162. Unwind skills, group by skill, count, sort by count desc, limit 5
-
-// 163. Join emp with dept, calculate total emp cost per dept, sort by cost
-
-// 164. Group by education, find avg salary, avg age, count employees
-
-// 165. Find employees above dept avg salary with their salary difference
-
-// 166. Calculate dept-wise performance metrics (avg rating, total bonus)
-
-// 167. Find top performer in each department by performance rating
-
-// 168. Analyze hiring trends: count by year and month
-
-// 169. Find correlation between skills count and salary
-
-// 170. Department efficiency: budget per employee, sort by efficiency
+db.emp.aggregate([
+  {
+    $match: {
+      deptNo: { $in: [10, 20] },
+    },
+  },
+]);
+
+//! display all the emp names as username who are working as clerk
+db.emp.aggregate([
+  {
+    $match: { job: "clerk" }, // stage1
+  },
+  {
+    $project: {
+      "user name": "$name",
+      _id: 0,
+    },
+  },
+]);
+
+//! Show employee name and whether salary > 2000 (boolean field)
+db.emp.aggregate([
+  {
+    $project: {
+      name: 1,
+      isSalGt: {},
+      _id: 0,
+    },
+  },
+]);
