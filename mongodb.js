@@ -1444,58 +1444,6 @@ db.emp
 db.emp.find(); //? (filter, projection, sort, skip, limit)
 // db.emp.aggregate(); ==> using aggregate() we can only fetch
 
-//! ========================== aggregation =========================================
-//! whatever operations are performed using aggregate it does not modify the original data
-
-/* 
-Aggregation in MongoDB is like a data processing pipeline.
-
-Imagine you have many documents (records), and you want to:
-  filter them
-  group them
-  count them
-  sort them
-  and calculate totals or averages
-  or join two collections
-
-Instead of writing many queries, you use one single pipeline where data flows step by step.
-*/
-
-/* In MongoDB, aggregation essentially refers to a powerful framework that allows us to process, transform, and analyze data in a pipeline-based manner, very similar to how SQL performs GROUP BY, HAVING, JOIN, and complex reporting operations. The core idea behind aggregation is that instead of simply fetching documents, we can push documents through a series of well-defined stages — such as filtering, grouping, projecting, sorting, joining, and computing — to generate meaningful insights or reshaped data.
-
-It is a data processing pipeline. Each stage in the pipeline takes the incoming documents, applies a specific transformation, and passes the results to the next stage. For example, $match is like a filter, $group performs grouping and aggregations like count, sum, avg, min, max, $project reshapes the fields, $sort reorders documents, and $lookup performs joins across collections. */
-
-// db.collection_name.aggregate([{$match}, {s2}, {s3}, {s4}, ...])
-//? input to stage1 --> collection
-//? input to stage2 --> op of stage1
-//? input to stage3 --> op of stage2
-
-//& each stage:{} can only consist one aggregation operator , $match, $project, $addFields, etc...
-//& different aggregation operators
-
-//? $match --> it is used to filter out the documents based on some conditions
-db.collection_name.aggregate([
-  {
-    $match: { conditions },
-  },
-]);
-
-//? $project --> it is used to hide/display (to display use key:1, to hide use key:0) the fields of the documents and also used for aliasing. if key is present then it will be displayed otherwise if not present then it will not be displayed
-
-//? $group --> it is used to group the documents based on some field and perform aggregate functions like sum, avg, min, max, count. (these 5 operators can be used only inside $group)
-db.collection_name.aggregate([
-  {
-    $group: {
-      _id: "$fieldName",
-      count: { $sum: 1 },
-      max: { $max: "$fieldName" },
-      min: { $min: "$fieldName" },
-      avg: { $avg: "$fieldName" },
-      sum: { $sum: "$fieldName" },
-    },
-  },
-]);
-
 //! display all the emp details who are working as clerk
 db.emp.aggregate([
   {
@@ -1613,6 +1561,162 @@ db.emp.aggregate([
     $group: {
       _id: "$city",
       count: { $sum: 1 },
+    },
+  },
+  {
+    $project: {
+      city: "$_id",
+      count: 1,
+      _id: 0,
+    },
+  },
+]);
+
+// Count total employees by city along with that show their names and job titles
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$city",
+      count: { $sum: 1 },
+      employeeID: { $push: "$_id" },
+      job: { $push: "$job" },
+      jobWithUniqueValues: { $addToSet: "$job" },
+    },
+  },
+  {
+    $project: {
+      city: "$_id",
+      count: 1,
+      _id: 0,
+      name: 1,
+      job: 1,
+      jobWithUniqueValues: 1,
+    },
+  },
+]);
+
+//! Count employees with and without insurance
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$havingInsurance",
+      count: { $sum: 1 },
+    },
+  },
+  {
+    $project: {
+      havingInsurance: "$_id",
+      count: 1,
+      _id: 0,
+    },
+  },
+]);
+
+//! display all the emp names in ascending order.
+db.emp.aggregate([
+  // {name:"", agee:"", ..........}
+  {
+    $project: {
+      name: 1,
+      _id: 0,
+    },
+  }, // s1
+  {
+    $sort: { name: 1 }, // {name:"smith"}, {name:"allen"}
+  }, // s2
+]);
+
+// db.emp.find().explain("executionStats");
+
+//! 43. Sort employees first by department, then by salary descending
+db.emp.aggregate([
+  {
+    $sort: {
+      deptNo: 1,
+      salary: -1,
+    },
+  },
+  {
+    $project: {
+      salary: 1,
+      deptNo: 1,
+      _id: 0,
+    },
+  },
+]);
+
+//! display the emp who is having maximum salary
+db.emp.aggregate([
+  {
+    $sort: {
+      salary: -1,
+    },
+  },
+  {
+    $limit: 1,
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $sort: {
+      salary: -1,
+    },
+  },
+  { $skip: 2 },
+  { $limit: 1 },
+  {
+    $project: {
+      name: 1,
+      salary: 1,
+      _id: 0,
+    },
+  },
+]);
+
+let arr = [
+  { salary: 5000, name: "king" },
+  { salary: 3000, name: "scott" },
+  { salary: 3000, name: "ford" },
+  { salary: 2975, name: "jones" },
+  { salary: 2850, name: "blake" },
+  { salary: 2450, name: "clark" },
+  { salary: 1600, name: "allen" },
+  { salary: 1500, name: "turner" },
+  { salary: 1300, name: "miller" },
+  { salary: 1250, name: "ward" },
+  { salary: 1250, name: "martin" },
+  { salary: 1100, name: "smith" },
+  { salary: 1100, name: "adams" },
+];
+
+//! display the emp who is having third highest salary
+db.emp.aggregate([
+  {
+    $group: {
+      _id: "$salary",
+      names: { $push: "$name" },
+    },
+  },
+  { $sort: { _id: -1 } },
+  { $skip: 2 },
+  { $limit: 1 },
+  { $unwind: "$names" },
+  {
+    $project: { thirdHighestSalary: "$_id", names: 1, _id: 0 },
+  },
+]);
+
+//! emp --< local collection
+//! dept --< foreign collection
+
+db.emp.aggregate([
+  {
+    $lookup: {
+      from: "dept", // collection to join
+      localField: "deptNo", // field from the input documents
+      foreignField: "deptNo", // field from the documents of the "from" collection
+      as: "departmentDetails",
     },
   },
 ]);
