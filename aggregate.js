@@ -91,12 +91,43 @@ db.collection_name.aggregate([
 
 //? $lookup: it is used to perform join operation between two or more collections
 db.collection_name.aggregate([
+  //& collection_name --> local collection
   {
     $lookup: {
       from: "otherCollectionName", // collection to join
+      //& otherCollection_name foreign collection
       localField: "fieldName", // field from the input documents
       foreignField: "fieldName", // field from the documents of the "from" collection
-      as: "outputArrayFieldName", // output array field
+      as: "outputArrayFieldName", // output array field, normally same as localField
     },
   },
 ]);
+
+//? $unwind --> it is used to deconstruct an array field from the input documents to output a document for each element (used to flatten the array)
+db.collection_name.aggregate([
+  {
+    $unwind: "$arrayFieldName",
+  },
+]);
+
+//? $addFields --> it is used to add a field while fetching the documents
+db.collection_name.aggregate([
+  {
+    //  $addFields:{ name: {value or expression}}
+  },
+]);
+
+//? $add --> { $add: [num1, num2, .....] }
+
+//? $subtract --> { $subtract: [num1, num2] } --> num1 - num2
+
+//? $divide --> { $divide: [num1, num2] } --> num1/num2
+
+//? $mod --> { $mod: [num1, num2] } --> num1%num2
+
+//? $multiply --> { $multiply: [num1, num2] } --> num1*num2
+
+//? $ifNull --> it is used to assign a default value if the field is not present
+{
+  $ifNull: ["$field", defaultValue];
+}

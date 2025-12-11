@@ -1720,3 +1720,304 @@ db.emp.aggregate([
     },
   },
 ]);
+
+//
+// // 86. Group employees into salary ranges: 0-1500, 1500-3000, 3000+
+// db.emp.aggregate([
+//   {
+//     $bucket: {
+//       groupBy: "$salary",
+//       boundaries: [0, 1500, 3000],
+//       default: "Other",
+//       output: {
+//         count: { $sum: 1 },
+//         employees: { $push: "$name" },
+//       },
+//     },
+//   },
+// ]);
+
+// // Auto-bucket employees into 3 groups by salary
+// db.emp.aggregate([
+//   {
+//     $bucketAuto: {
+//       groupBy: "$salary",
+//       buckets: 3,
+//       output: {
+//         count: { $sum: 1 },
+//         employees: { $push: "$name" },
+//       },
+//     },
+//   },
+// ]);
+
+//! user collction
+let c = 10;
+
+//!  users collection
+let e1 = {
+  name: "",
+  age: "",
+  contact: "c1",
+};
+let e2 = {
+  name: "",
+  age: "",
+  contact: "c2",
+};
+
+//! contact
+let c1 = {
+  _id: "c1",
+  email: "",
+  phone: "",
+};
+let c2 = {
+  _id: "c2",
+  email: "",
+  phone: "",
+};
+
+db.contacts.insertMany([
+  {
+    _id: "c1",
+    email: "test@gamil.com",
+    phone: "1234567890",
+    user: "u1",
+  },
+  {
+    _id: "c2",
+    email: "demo@gmail.com",
+    phone: "0987654321",
+    user: "u2",
+  },
+]);
+
+db.users.insertMany([
+  {
+    _id: "u1",
+    name: "test",
+    age: "34",
+    contact: "c1",
+  },
+  {
+    _id: "u2",
+    name: "demo",
+    age: "34",
+    contact: "c2",
+  },
+]);
+
+db.users.aggregate([
+  {
+    $lookup: {
+      from: "contacts",
+      localField: "contact",
+      foreignField: "_id",
+      as: "conDetails",
+    },
+  },
+]);
+
+//! user --> contact
+//! contact --> users
+
+db.contacts.aggregate([
+  {
+    $lookup: {
+      from: "users",
+      localField: "_id",
+      foreignField: "contact",
+      as: "_id",
+    },
+  },
+]);
+
+//! show the complete details of user whose name is "test"
+db.users.aggregate([
+  { $match: { name: "test" } },
+  {
+    $lookup: {
+      from: "contacts",
+      localField: "contact",
+      foreignField: "_id",
+      as: "contact",
+    },
+  },
+]);
+
+/* 
+[
+ let obj = {
+    _id: 'u1',
+    name: 'test',
+    age: '34',
+    contact: 
+      {
+        _id: 'c1',
+        email: 'test@gamil.com',
+        phone: '1234567890',
+        user: 'u1'
+      }
+    
+  }
+]
+
+*/
+
+//! show only name, age and email of user whose name is "test"
+db.users.aggregate([
+  { $match: { name: "test" } },
+  {
+    $lookup: {
+      from: "contacts",
+      localField: "contact",
+      foreignField: "_id",
+      as: "contact",
+    },
+  },
+  { $unwind: "$contact" },
+  {
+    $project: {
+      name: 1,
+      age: 1,
+      email: "$contact.email",
+      _id: 0,
+    },
+  },
+]);
+
+//! For each department, show all employee names and budget of the department they are working there
+//? number of stages --> 2(lookup, project)
+db.dept.aggregate([
+  {
+    $lookup: {
+      from: "emp",
+      localField: "deptNo",
+      foreignField: "deptNo",
+      as: "empDetails",
+    },
+  },
+  { $unwind: "$deptNo" },
+  {
+    $project: { budget: 1, "empDetails.name": 1 },
+  },
+]);
+
+//!
+// 55. Join employees with departments and show only matching records
+
+//! display total number of emp in each job long with facilities and location whose name contains letter "a"
+//? stages --> filter, group, lookup ,project (4 stages)
+
+db.emp.aggregate([
+  {
+    $match: {
+      name: {
+        $regex: /a/,
+      },
+    },
+  },
+  {
+    $lookup: {
+      from: "dept",
+      localField: "deptNo",
+      foreignField: "deptNo",
+      as: "deptNo",
+    },
+  },
+  {
+    $unwind: {
+      path: "$deptNo",
+    },
+  },
+  {
+    $group: {
+      _id: "$job",
+      count: {
+        $sum: 1,
+      },
+      deptDetails: {
+        $addToSet: "$deptNo",
+      },
+    },
+  },
+  {
+    $unwind: {
+      path: "$deptDetails",
+    },
+  },
+  {
+    $project: {
+      count: 1,
+      job: "$_id",
+      _id: 0,
+      facilities: "$deptDetails.facilities",
+      location: "$deptDetails.loc",
+    },
+  },
+]);
+
+// /?! . Add a field "annualSalary" (salary * 12) to all employees
+// hello --> greet
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      annualSal: { $multiply: ["$salary", 12] },
+    },
+  },
+]);
+
+//! find total salary given to each employee
+db.emp.aggregate([
+  {
+    $addFields: {
+      annualSal: { $multiply: ["$salary", 12] },
+    },
+  },
+  {
+    $addFields: {
+      totalSal: {
+        $add: ["$annualSal", "$comm", "$incentive", "$bonus"],
+      },
+    },
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      annualSal: { $multiply: ["$salary", 12] },
+    },
+  },
+  {
+    $addFields: {
+      totalSal: {
+        $add: [
+          "$annualSal",
+          { $ifNull: ["$comm", 0] },
+          { $ifNull: ["$bonus", 0] },
+          { $ifNull: ["$incentive", 0] },
+        ],
+      },
+    },
+  },
+  {
+    $group: {
+      _id: "$totalSal",
+      sum: { $sum: "$totalSal" },
+    },
+  },
+]);
+
+//! show the total salary given to all the emp --> use $group
+db.emp.aggregate([
+  {
+    $group: {
+      _id: null,
+      totalSal: { $sum: "$salary" },
+      count: { $sum: 1 },
+    },
+  },
+]);
