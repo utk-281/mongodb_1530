@@ -501,6 +501,8 @@ db.dummy2.insertMany([
   },
 ]);
 
+db.emp.find({ results: { $elemMatch: { product: "def" } } });
+
 //& find all the documents in which product pqr is present
 db.dummy2.find({ results: { $elemMatch: { product: "pqr" } } }, { _id: 0 });
 
@@ -2018,6 +2020,99 @@ db.emp.aggregate([
       _id: null,
       totalSal: { $sum: "$salary" },
       count: { $sum: 1 },
+    },
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      year: { $year: "$hireDate" },
+      month: { $month: "$hireDate" },
+      day: { $dayOfMonth: "$hireDate" },
+    },
+  },
+  {
+    $project: { year: 1, hireDate: 1, _id: 0, month: 1, day: 1 },
+  },
+]);
+
+// Add field "experienceYears" (current year - hire year)
+// year - hiredYear
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      year: { $year: "$hireDate" },
+    },
+  },
+  {
+    $addFields: {
+      expYears: { $subtract: [{ $year: new Date() }, "$year"] },
+    },
+  },
+  {
+    $project: { name: 1, expYears: 1, _id: 0, year: 1 },
+  },
+]);
+
+// db.emp.find({ year: { $year: "$hireDate" } });
+
+db.emp.aggregate([
+  {
+    $addFields: {
+      month: { $month: "$hireDate" },
+    },
+  },
+  {
+    $match: {
+      month: 2,
+    },
+  },
+]);
+
+//! Group employees into salary ranges: 0-1500, 1500-3000, 3000+
+db.emp.aggregate([
+  {
+    $bucket: {
+      groupBy: "$salary",
+      boundaries: [0, 1500, 3000, 7000],
+      default: "ABove 5000",
+      output: {
+        count: { $sum: 1 },
+        names: { $push: "$name" },
+        sal: { $push: "$salary" },
+      },
+    },
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $bucketAuto: {
+      groupBy: "$age",
+      buckets: 50,
+      output: {
+        age: { $push: "$age" },
+      },
+    },
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $sortByCount: { salary: 1 },
+  },
+]);
+
+//! Get both: top 5 earners AND average salary by department
+db.emp.aggregate([{ $sortByCount: "$salary" }]);
+
+db.emp.aggregate([
+  {
+    $facet: {
+      topEarner: [],
+      avgSaL: [],
     },
   },
 ]);

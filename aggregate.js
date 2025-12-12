@@ -131,3 +131,64 @@ db.collection_name.aggregate([
 {
   $ifNull: ["$field", defaultValue];
 }
+
+//? $year --> it is used to extract year from date input
+{
+  $year: "$hireDate";
+}
+
+//? $month --> it is used to extract month from date input
+{
+  $month: "$hireDate";
+}
+// for filtering month values ranges from 1 (jan) to 12 (dec)
+
+//? $dayOfMonth --> it is used to extract day from date input
+{
+  $dayOfMonth: "$hireDate";
+}
+// for filtering day values ranges from 1 to 31
+// for particular days 1(Sunday) t0 7(Saturday)
+
+//? $bucket --> it is used to group documents based on ranges
+/**
+ * groupBy: The expression to group by.
+ * boundaries: An array of the lower boundaries for each bucket.
+ * default: The bucket name for documents that do not fall within the specified boundaries
+ * output: {
+ *   outputN: Optional. The output object may contain a single or numerous field names used to accumulate values per bucket.
+ * }
+ */
+// db.collection_name.aggregate([
+//   {
+//     $bucket: {
+//       groupBy: "$fieldName",
+//       boundaries: [lowerLimit, upperLimit, upperLimit, ...],
+//       default: "default value",
+//       output: {
+//         count: { $sum: 1 },
+//         names: { $push: "$name" },
+//         age: { $push: "$age" },
+//         ...
+//       },
+//     },
+//   },
+// ]);
+
+//? $bucketAuto -->
+/**
+ * groupBy: The expression to group by.
+ * buckets: The desired number of buckets
+ * output: {
+ *   outputN: Optional. The output object may contain a single or numerous field names used to accumulate values per bucket.
+ * }
+ */
+db.collection_name.aggregate([
+  {
+    $bucketAuto: {
+      groupBy: "",
+      buckets: "",
+      output: {},
+    },
+  },
+]);
