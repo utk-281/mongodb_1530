@@ -2111,8 +2111,56 @@ db.emp.aggregate([{ $sortByCount: "$salary" }]);
 db.emp.aggregate([
   {
     $facet: {
-      topEarner: [],
-      avgSaL: [],
+      topEarner: [
+        {
+          $sort: { salary: -1 },
+        },
+        {
+          $limit: 3,
+        },
+        {
+          $project: {
+            salary: 1,
+            _id: 0,
+          },
+        },
+      ],
+      avgSaL: [
+        {
+          $group: {
+            _id: null,
+            avgSal: { $avg: "$salary" },
+          },
+        },
+      ],
+      key: [{}, {}, {}],
     },
   },
 ]);
+
+db.emp.aggregate([
+  {
+    $replaceWith: {
+      newKey: "$performance",
+    },
+  },
+]);
+
+db.emp.aggregate([
+  {
+    $sample: { size: 1 },
+  },
+]);
+
+//! indexing -> ref (storing doc's partial data)
+db.emp.find({ name: "smith" }).explain("executionStats");
+db.emp
+  .find({ _id: ObjectId("66a23517b5c6990483c4e49b") })
+  .explain("executionStats");
+
+db.movies.find({ year: { $gt: 1600 } }).explain("executionStats");
+db.movies.createIndex({ year: 1 });
+
+// ACID --> atomicity (either 0 or 1), consistency (updates should be reflected), isolation (each operation should be isolated from each other), durability (services may not be available for some time) SQL
+
+// BASE --> basically available (data is always available), soft-state (), eventual consistency ( crud operation in near time it will be completed) NoSQL

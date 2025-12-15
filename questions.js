@@ -924,7 +924,7 @@ let a = 20;
 // 100. Count departments by location and sort
 
 // ============================================
-// STAGE 14: $replaceRoot and $replaceWith (Replace document root)
+// STAGE 14: $replaceWith (Replace document root)
 // ============================================
 
 // 101. Replace root with performance subdocument for all employees
